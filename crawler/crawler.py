@@ -27,7 +27,7 @@ class Crawler:
             path = link.get('href')
             if path and path.startswith('/'):
                 path = urljoin(url, path)
-            yield path
+                yield path
 
     @abstractmethod
     def add_url_to_visit(self, url):
