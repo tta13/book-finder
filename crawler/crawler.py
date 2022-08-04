@@ -21,7 +21,7 @@ class Crawler:
         self.logger = logging.getLogger('crawler_logger')
 
     def download_url(self, url):
-        return requests.get(url).text
+        return requests.get(url, headers = {"HTTP_ACCEPT": "text/html"}).text
 
     def get_base_url(self, url):
         return re.search('https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+', url).group(0)
