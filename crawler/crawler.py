@@ -22,6 +22,7 @@ class Crawler:
         self.logger = logging.getLogger('crawler_logger')
         self.pages_counter = 0
         self.pages_limit = pages_limit
+        self.default_delay = 15
         self.base_url = self.get_base_url(url)
         self.rp = urllib.robotparser.RobotFileParser()
         self.rp.set_url(f"{self.base_url}/robots.txt")
@@ -57,7 +58,7 @@ class Crawler:
         if self.rp.crawl_delay("*"):
             time.sleep(self.rp.crawl_delay("*"))
         else:
-            time.sleep(25)
+            time.sleep(self.default_delay)
 
     @abstractmethod
     def add_url_to_visit(self, url):
