@@ -16,10 +16,12 @@ logging.basicConfig(
     level=logging.INFO)
 
 class Crawler:
-    def __init__(self, url=None):
+    def __init__(self, url, pages_limit):
         self.visited_urls = []
         self.urls_to_visit = [url]
         self.logger = logging.getLogger('crawler_logger')
+        self.pages_counter = 0
+        self.pages_limit = pages_limit
         self.base_url = self.get_base_url(url)
         self.rp = urllib.robotparser.RobotFileParser()
         self.rp.set_url(f"{self.base_url}/robots.txt")
@@ -68,11 +70,12 @@ class Crawler:
     def crawl(self, url):
         self.delay_crawling()
         html = self.download_url(url)
+        self.pages_counter += 1
         for url in self.get_linked_urls(url, html):
             self.add_url_to_visit(url)
 
     def run(self):
-        while self.urls_to_visit:
+        while self.urls_to_visit and self.pages_counter < self.pages_limit:
             url = self.get_url_to_visit()
             self.logger.info(f'Crawling: {url}')
             try:
@@ -102,10 +105,10 @@ class CrawlerFactory():
     def __init__(self) -> None:
         pass
     
-    def make_crawler(self, url, default_strategy='bfs'):
+    def make_crawler(self, url, pages_limit=1000, default_strategy='bfs'):
         crawler_type = os.environ.get('CRAWLER_SELECTION_STRATEGY', default_strategy)
-        if crawler_type.lower() == 'bfs': return BFSCrawler(url)
-        elif crawler_type.lower() == 'heuristic': return HeuristicCrawler(url)
+        if crawler_type.lower() == 'bfs': return BFSCrawler(url, pages_limit)
+        elif crawler_type.lower() == 'heuristic': return HeuristicCrawler(url, pages_limit)
         else: logging.getLogger('crawler_logger').error(f'Invalid crawler selection strategy: {crawler_type}')
 
 if __name__ == '__main__':
