@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 import urllib.robotparser
 import re
+import time
 
 load_dotenv()
 
@@ -15,16 +16,24 @@ logging.basicConfig(
     level=logging.INFO)
 
 class Crawler:
-    def __init__(self, urls=[]):
+    def __init__(self, url=None):
         self.visited_urls = []
-        self.urls_to_visit = urls
+        self.urls_to_visit = [url]
         self.logger = logging.getLogger('crawler_logger')
+        self.base_url = self.get_base_url(url)
+        self.rp = urllib.robotparser.RobotFileParser()
+        self.rp.set_url(f"{self.base_url}/robots.txt")
+        self.rp.read()
 
     def download_url(self, url):
         return requests.get(url, headers = {"HTTP_ACCEPT": "text/html"}).text
 
     def get_base_url(self, url):
-        return re.search('https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+', url).group(0)
+        try:
+            return re.search('https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+', url).group(0)
+        except Exception:
+            self.logger.exception(f'Failed to get base url from: {url}')
+            return None
 
     def get_linked_urls(self, url, html):
         soup = BeautifulSoup(html, 'html.parser')
@@ -35,17 +44,18 @@ class Crawler:
                     path = urljoin(url, path)
                     if self.can_visit_url(path):
                         yield path
-                elif self.get_base_url(path) == self.get_base_url(url):
+                elif self.get_base_url(path) == self.base_url:
                     if self.can_visit_url(path):
                         yield path
 
     def can_visit_url(self, url):
-        base_url = self.get_base_url(url)
-        rp = urllib.robotparser.RobotFileParser()
-        rp.set_url(f"{base_url}/robots.txt")
-        rp.read()
-        print(url)
-        return rp.can_fetch("*", url)
+        return self.rp.can_fetch("*", url)
+
+    def delay_crawling(self):
+        if self.rp.crawl_delay("*"):
+            time.sleep(self.rp.crawl_delay("*"))
+        else:
+            time.sleep(25)
 
     @abstractmethod
     def add_url_to_visit(self, url):
@@ -56,6 +66,7 @@ class Crawler:
         pass
 
     def crawl(self, url):
+        self.delay_crawling()
         html = self.download_url(url)
         for url in self.get_linked_urls(url, html):
             self.add_url_to_visit(url)
@@ -91,11 +102,11 @@ class CrawlerFactory():
     def __init__(self) -> None:
         pass
     
-    def make_crawler(self, urls, default_strategy='bfs'):
+    def make_crawler(self, url, default_strategy='bfs'):
         crawler_type = os.environ.get('CRAWLER_SELECTION_STRATEGY', default_strategy)
-        if crawler_type.lower() == 'bfs': return BFSCrawler(urls)
-        elif crawler_type.lower() == 'heuristic': return HeuristicCrawler(urls)
+        if crawler_type.lower() == 'bfs': return BFSCrawler(url)
+        elif crawler_type.lower() == 'heuristic': return HeuristicCrawler(url)
         else: logging.getLogger('crawler_logger').error(f'Invalid crawler selection strategy: {crawler_type}')
 
 if __name__ == '__main__':
-    CrawlerFactory().make_crawler(urls=['https://leitura.com.br/']).run()
+    CrawlerFactory().make_crawler(url='https://leitura.com.br/').run()
