@@ -10,8 +10,8 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.options import Options
 import tldextract
+import datetime
 
 load_dotenv()
 
@@ -22,7 +22,6 @@ logging.basicConfig(
 class Crawler:
     def __init__(self, url, pages_limit):
         self.visited_urls = []
-        self.urls_to_visit = [url]
         self.logger = logging.getLogger('crawler_logger')
         self.pages_counter = 0
         self.pages_limit = pages_limit
@@ -32,6 +31,9 @@ class Crawler:
         self.rp.set_url(f"https://{self.get_url_netloc(url)}/robots.txt")
         self.rp.read()
         self.driver = self.init_webdriver()
+        self.urls_to_visit = []
+        if self.can_visit_url(url):
+            self.urls_to_visit.append(url)
     
     
     def init_webdriver(self):
@@ -46,6 +48,25 @@ class Crawler:
         self.driver.get(url)
         html = self.driver.page_source
         return html
+    
+    def save_page_source(self, html, url):
+        file_dir = os.path.join('..', 'data', 'crawled', self.domain)
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        file_name = str(datetime.datetime.now().date()) + '_' + str(datetime.datetime.now().time()).replace(':', '.')
+        file_path = os.path.join(file_dir, f"{file_name}.html")
+        self.logger.info(f"Saving page source to: {file_path}")
+        file_metadata_path = os.path.join(file_dir, f"index.txt")
+        try:
+            with open(file_path, "wt", encoding="utf-8") as f:
+                f.write(html)
+            f.close
+            with open(file_metadata_path, "a", encoding="utf-8") as f:
+                f.write(f"{file_name}: {url}\n")
+            f.close
+            self.pages_counter += 1
+        except Exception:
+            self.logger.exception(f"Failed to save page source")
 
     def get_url_netloc(self, url):
         try:
@@ -95,7 +116,7 @@ class Crawler:
 
     def crawl(self, url):
         html = self.download_url(url)
-        self.pages_counter += 1
+        self.save_page_source(html, url)
         for url in self.get_linked_urls(url, html):
             self.add_url_to_visit(url)
         self.delay_crawling()
