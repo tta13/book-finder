@@ -1,13 +1,17 @@
 from abc import abstractmethod
 import logging
-from urllib.parse import urljoin
-import requests
+from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 import os
 from dotenv import load_dotenv
 import urllib.robotparser
 import re
 import time
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
+import tldextract
 
 load_dotenv()
 
@@ -23,22 +27,43 @@ class Crawler:
         self.pages_counter = 0
         self.pages_limit = pages_limit
         self.default_delay = 15
-        self.base_url = self.get_base_url(url)
+        self.domain = self.get_url_domain(url)
         self.rp = urllib.robotparser.RobotFileParser()
-        self.rp.set_url(f"{self.base_url}/robots.txt")
+        self.rp.set_url(f"https://{self.get_url_netloc(url)}/robots.txt")
         self.rp.read()
+        self.driver = self.init_webdriver()
+    
+    
+    def init_webdriver(self):
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument("--window-size=1920,1200")
+        options.add_argument('--log-level=1')
+        return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
 
     def download_url(self, url):
-        return requests.get(url, headers = {"HTTP_ACCEPT": "text/html"}).text
+        self.logger.info(f"Fetching html from: {url}")
+        self.driver.get(url)
+        html = self.driver.page_source
+        return html
 
-    def get_base_url(self, url):
+    def get_url_netloc(self, url):
         try:
-            return re.search('https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+', url).group(0)
+            return urlparse(url).netloc
         except Exception:
-            self.logger.exception(f'Failed to get base url from: {url}')
+            self.logger.exception(f'Failed to get url netloc from: {url}')
+            return None
+
+    def get_url_domain(self, url):
+        try:
+            url_netloc = self.get_url_netloc(url)
+            return tldextract.extract(url_netloc).domain
+        except Exception:
+            self.logger.exception(f'Failed to get url domain from: {url}')
             return None
 
     def get_linked_urls(self, url, html):
+        self.logger.info(f"Getting linked urls from: {url}")
         soup = BeautifulSoup(html, 'html.parser')
         for link in soup.find_all('a'):
             path = link.get('href')
@@ -47,7 +72,7 @@ class Crawler:
                     path = urljoin(url, path)
                     if self.can_visit_url(path):
                         yield path
-                elif self.get_base_url(path) == self.base_url:
+                elif self.get_url_domain(path) == self.domain:
                     if self.can_visit_url(path):
                         yield path
 
@@ -69,11 +94,11 @@ class Crawler:
         pass
 
     def crawl(self, url):
-        self.delay_crawling()
         html = self.download_url(url)
         self.pages_counter += 1
         for url in self.get_linked_urls(url, html):
             self.add_url_to_visit(url)
+        self.delay_crawling()
 
     def run(self):
         while self.urls_to_visit and self.pages_counter < self.pages_limit:
