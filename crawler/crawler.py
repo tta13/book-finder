@@ -42,7 +42,7 @@ class Crawler:
         return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
 
     def download_url(self, url):
-        self.logger.info(f"Fetching html from: {url}")
+        self.logger.info(f"Fetching html")
         self.driver.get(url)
         html = self.driver.page_source
         return html
@@ -63,7 +63,7 @@ class Crawler:
             return None
 
     def get_linked_urls(self, url, html):
-        self.logger.info(f"Getting linked urls from: {url}")
+        self.logger.info(f"Getting linked urls")
         soup = BeautifulSoup(html, 'html.parser')
         for link in soup.find_all('a'):
             path = link.get('href')
