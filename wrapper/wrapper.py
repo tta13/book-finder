@@ -116,7 +116,7 @@ class CulturaWrapper(Wrapper):
         publisher_div = soup.find('div', class_='publisher')
         publisher = publisher_div.h2.div.a.string if publisher_div.h2.div else ''
         info_div = soup.find('div', id='info-product')
-        book_info = info_div.string if info_div else ''
+        book_info = info_div.string.strip('\n ') if info_div else ''
         price_data = soup.find('em', class_='valor-por')
         price = price_data.strong.text if price_data else ''
         prod_spec = soup.find(class_='section-produto-especificacoes')
@@ -146,4 +146,44 @@ class CulturaWrapper(Wrapper):
             "edition": edition,
             "pages": pages,
             "language": language
+        }
+
+class CompanhiaWrapper(Wrapper):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        self.domain = 'companhiadasletras'
+
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        title_div = soup.find('div', class_='detalhe_livro_titulo')
+        title = title_div.string if title_div else ''
+        authors_div = soup.find('div', class_='detalhe_livro_autor')
+        authors=[]
+        if authors_div:
+            for a in authors_div.find_all('a'):
+                authors.append(a.string)
+        price_div = soup.find('div', class_='preco')
+        price = price_div.string if price_div else ''
+        details = soup.find_all('div', class_='bloco_txt_detalhe')
+        book_info = details[0].get_text().strip('\n ') if details else ''
+        pages, year, isbn, publisher = '', '', '', ''
+        for span in details[1].find_all('span'):
+            if span.string == 'Páginas:':
+                pages = str(span.next_sibling).strip()
+            if span.string == 'Lançamento:':
+                year = str(span.next_sibling).split('/')[-1]
+            if span.string == 'ISBN:':
+                isbn = str(span.next_sibling).strip()
+            if span.string == 'Selo:':
+                publisher = str(span.next_sibling).strip()
+        return {
+            "title": title,
+            "authors": authors,
+            "publisher": publisher,
+            "price": price,
+            "info": book_info,
+            "year": year,
+            "isbn": isbn,
+            "edition": '',
+            "pages": pages,
+            "language": ''
         }
