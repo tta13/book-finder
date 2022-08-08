@@ -1,5 +1,5 @@
-from wrapper import AmazonWrapper
+from wrapper import AmazonWrapper, CulturaWrapper
 
 if __name__ == '__main__':
-    wrapper = AmazonWrapper('../data/crawled/amazon')
+    wrapper = CulturaWrapper('../data/crawled/livrariacultura')
     wrapper.wrap()

@@ -91,3 +91,59 @@ class AmazonWrapper(Wrapper):
             "pages": pages,
             "language": language
         }
+
+class CulturaWrapper(Wrapper):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        self.domain = 'livrariacultura'
+
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        def treat_author(author_string: str):
+            authors = author_string.split('|')
+            result = []
+            for a in authors:
+                if not 'Autor' in a:
+                    continue
+                name = a.replace('Autor:', '')
+                name = name.split(', ')
+                name.reverse()
+                result.append(' '.join(name))
+            return result
+        
+        title_div = soup.find("h1", class_="title_product").div
+        if title_div:
+            title = title_div.string
+        publisher_div = soup.find('div', class_='publisher')
+        publisher = publisher_div.h2.div.a.string if publisher_div.h2.div else ''
+        info_div = soup.find('div', id='info-product')
+        book_info = info_div.string if info_div else ''
+        price_data = soup.find('em', class_='valor-por')
+        price = price_data.strong.text if price_data else ''
+        prod_spec = soup.find(class_='section-produto-especificacoes')
+        if not publisher:
+            publisher_data = prod_spec.find('td', class_='value-field Editora')
+            publisher = publisher_data.string if publisher_data else ''
+        author_data = prod_spec.find('td', class_='value-field Colaborador')
+        authors = treat_author(author_data.string) if author_data else []
+        isbn_data = prod_spec.find('td', class_='value-field ISBN')
+        isbn = isbn_data.string if isbn_data else ''  
+        language_data = prod_spec.find('td', class_='value-field Idioma')
+        language = language_data.string if isbn_data else ''
+        year_data = prod_spec.find('td', class_='value-field Ano')
+        year = year_data.string if year_data else ''
+        edition_data = prod_spec.find('td', class_='value-field Edicao')
+        edition = edition_data.string if edition_data else ''
+        pages_data = prod_spec.find('td', class_='value-field Paginas')
+        pages = pages_data.string if pages_data else ''
+        return {
+            "title": title,
+            "publisher": publisher,
+            "price": price,
+            "info": book_info,
+            "authors": authors,
+            "year": year,
+            "isbn": isbn,
+            "edition": edition,
+            "pages": pages,
+            "language": language
+        }
