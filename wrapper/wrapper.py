@@ -334,3 +334,53 @@ class LeituraWrapper(Wrapper):
             "pages": pages,
             "language": language
         }
+
+class TravessaWrapper(Wrapper):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        self.domain = 'travessa'
+        self.path = f'{base_path}/{self.domain}'
+
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        title_span = soup.find('span', id='lblNomArtigo')
+        title = title_span.string.strip() if title_span else ''
+        publisher_span = soup.find('span', id='lblNomProdutor')
+        publisher = publisher_span.a.string.strip() if publisher_span and publisher_span.a else ''
+        price_el = soup.find('strong', id='litPreco')
+        price = price_el.string.strip() if price_el else ''
+        info_el = soup.find('p', id='lblSinopse')
+        info = info_el.text.strip('\n ') if info_el else ''
+        data = soup.find('div', class_='dados')
+        isbn, language, pages, year, edition, authors = '', '', '', '', '', []
+        if data:
+            title_data = data.find('span', id='lblDadosNome')
+            title = title_data.text.strip('\n ') if title_data else title
+            isbn_data = data.find('span', id='lblDadosIsbn')
+            isbn = isbn_data.text.strip('\n ') if isbn_data else ''
+            language_data = data.find('span', id='lblDadosIdioma')
+            language = language_data.text.strip('\n ') if language_data else ''
+            pages_data = data.find('span', id='lblDadosPaginas')
+            pages = pages_data.text.strip('\n ') if pages_data else ''
+            y_data = data.find('span', id='lblDadosAnoEdicao')
+            year = y_data.text.strip('\n ') if y_data else ''
+            ed_data = data.find('span', id='lblDadosEdicao')
+            edition = ed_data.text.strip('\n ') if ed_data else ''
+            authors_data = data.find('span', id='lblTituloDadosParticipantes')
+            if authors_data:
+                for c in authors_data.children:
+                    if c.name == 'br':
+                        break
+                    elif c.name == 'a':
+                        authors.append(c.string.strip())
+        return {
+            "title": title,
+            "authors": authors,
+            "publisher": publisher,
+            "price": price,
+            "info": info,
+            "year": year,
+            "isbn": isbn,
+            "edition": edition,
+            "pages": pages,
+            "language": language
+        }

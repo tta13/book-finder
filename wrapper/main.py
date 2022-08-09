@@ -1,5 +1,5 @@
-from wrapper import LeituraWrapper
+from wrapper import TravessaWrapper
 
 if __name__ == '__main__':
-    wrapper = LeituraWrapper('../data/crawled/')
+    wrapper = TravessaWrapper('../data/crawled/')
     wrapper.wrap()
