@@ -1,5 +1,5 @@
-from wrapper import SaraivaWrapper
+from wrapper import LeituraWrapper
 
 if __name__ == '__main__':
-    wrapper = SaraivaWrapper('../data/crawled/')
+    wrapper = LeituraWrapper('../data/crawled/')
     wrapper.wrap()

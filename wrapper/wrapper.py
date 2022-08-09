@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from pydoc import describe
 from bs4 import BeautifulSoup
 import os
 import re
@@ -278,6 +279,58 @@ class SaraivaWrapper(Wrapper):
             "year": year,
             "isbn": isbn,
             "edition": edition,
+            "pages": pages,
+            "language": language
+        }
+
+class LeituraWrapper(Wrapper):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        self.domain = 'leitura'
+        self.path = f'{base_path}/{self.domain}'
+
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        title_header = soup.find('h1', class_='product-title')
+        title = title_header.string.strip('\n ') if title_header else ''
+        price_p = soup.find('p', class_='price')
+        price = price_p.string.strip('\n\t ') if price_p else ''
+        description = soup.find('div', id='tab-description')
+        info_p = description.p if description else None
+        info = info_p.text.strip('\n\t ') if info_p else ''
+        details = soup.find('div', id='tab-details')
+        isbn = ''
+        if details.table:
+            for tr in details.table.tbody.find_all('tr'):
+                field, content = tr.td, tr.td.next_sibling.next_sibling
+                if field and content:
+                    if 'código de barras' in str(field.string).lower():
+                        isbn = content.string.strip()
+        details = soup.find('div', id='tab-specification').table
+        authors, publisher, language, pages, year = [], '', '', '', ''
+        if details:
+            for tr in details.tbody.find_all('tr'):
+                field, content = tr.td, tr.td.next_sibling.next_sibling
+                if field and content:
+                    field, content = field.string.lower(), content.string
+                    if 'autor' in field:
+                        authors = content.split(' & ')
+                    elif 'editora' in field:
+                        publisher = content.strip()
+                    elif 'idioma' in field:
+                        language = content.strip()
+                    elif 'páginas' in field:
+                        pages = content.strip()
+                    elif 'ano de' in field:
+                        year = content.strip()
+        return {
+            "title": title,
+            "authors": authors,
+            "publisher": publisher,
+            "price": price,
+            "info": info,
+            "year": year,
+            "isbn": isbn,
+            "edition": '',
             "pages": pages,
             "language": language
         }
