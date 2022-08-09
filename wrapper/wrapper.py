@@ -36,6 +36,7 @@ class AmazonWrapper(Wrapper):
     def __init__(self, base_path):
         super().__init__(base_path)
         self.domain = 'amazon'
+        self.path = f'{base_path}/{self.domain}'
 
     def extract_info(self, soup: BeautifulSoup) -> dict:
         title = soup.find('span', id='productTitle').string.strip('\n ')
@@ -96,6 +97,7 @@ class CulturaWrapper(Wrapper):
     def __init__(self, base_path):
         super().__init__(base_path)
         self.domain = 'livrariacultura'
+        self.path = f'{base_path}/{self.domain}'
 
     def extract_info(self, soup: BeautifulSoup) -> dict:
         def treat_author(author_string: str):
@@ -152,6 +154,7 @@ class CompanhiaWrapper(Wrapper):
     def __init__(self, base_path):
         super().__init__(base_path)
         self.domain = 'companhiadasletras'
+        self.path = f'{base_path}/{self.domain}'
 
     def extract_info(self, soup: BeautifulSoup) -> dict:
         title_div = soup.find('div', class_='detalhe_livro_titulo')
@@ -192,6 +195,7 @@ class EstanteWrapper(Wrapper):
     def __init__(self, base_path):
         super().__init__(base_path)
         self.domain = 'estantevirtual'
+        self.path = f'{base_path}/{self.domain}'
 
     def extract_info(self, soup: BeautifulSoup) -> dict:
         title_h1 = soup.find('h1', class_='livro-titulo')
@@ -223,5 +227,57 @@ class EstanteWrapper(Wrapper):
             "isbn": isbn,
             "edition": '',
             "pages": '',
+            "language": language
+        }
+
+class SaraivaWrapper(Wrapper):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        self.domain = 'saraiva'
+        self.path = f'{base_path}/{self.domain}'
+
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        title_element = soup.find('h1', class_='title')
+        title = title_element.string.strip() if title_element else ''
+        price_p = soup.find('p', class_='price-destaque')
+        price = price_p.string.strip() if price_p else ''
+        info_div = soup.find('div', id='descricao')
+        info = info_div.text.strip('\n ') if info_div else ''
+        features = soup.find('div', id='caracteristicas').div.div.div.table.tbody
+        year, authors, isbn, edition, language, pages, publisher = '', [], '', '', '', '', ''
+        if features:
+            for tr in features.find_all('tr'):
+                tds = tr.find_all('td')
+                field, data = tds[0], tds[1]
+                if not field or not data:
+                    continue
+                field, data = field.string.lower(), data.string
+                if 'ano da edição' in field:
+                    year = data.strip()
+                elif 'isbn' in field:
+                    isbn = data.strip()
+                elif 'idioma' in field:
+                    language = data.strip()
+                elif 'número da edição' in field:
+                    edition = data.strip()
+                elif 'páginas' in field:
+                    pages = data.strip()
+                elif 'marca' in field:
+                    publisher = data.strip()
+                elif 'autor' in field:
+                    name_list = data.split(',')
+                    names, first_names = name_list[::2], name_list[1::2]
+                    first_names.extend(['' for i in range(len(names)-len(first_names))])
+                    authors = [' '.join([y, x]).strip() for x, y in zip(names, first_names)]
+        return {
+            "title": title,
+            "authors": authors,
+            "publisher": publisher,
+            "price": price,
+            "info": info,
+            "year": year,
+            "isbn": isbn,
+            "edition": edition,
+            "pages": pages,
             "language": language
         }

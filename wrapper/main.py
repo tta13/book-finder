@@ -1,5 +1,5 @@
-from wrapper import AmazonWrapper, CulturaWrapper, CompanhiaWrapper, EstanteWrapper
+from wrapper import SaraivaWrapper
 
 if __name__ == '__main__':
-    wrapper = EstanteWrapper('../data/crawled/estantevirtual')
+    wrapper = SaraivaWrapper('../data/crawled/')
     wrapper.wrap()
