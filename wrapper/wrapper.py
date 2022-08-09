@@ -187,3 +187,41 @@ class CompanhiaWrapper(Wrapper):
             "pages": pages,
             "language": ''
         }
+
+class EstanteWrapper(Wrapper):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        self.domain = 'estantevirtual'
+
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        title_h1 = soup.find('h1', class_='livro-titulo')
+        title = title_h1.string.strip('\n ') if title_h1 else ''
+        authors_h2 = soup.find('h2', class_='livro-autor')
+        authors = authors_h2.a.span.string.split('; ') if authors_h2 else ''
+        price_span = soup.find('span', class_='livro-preco-valor')
+        price = price_span.string.strip('\n ') if price_span else ''
+        specs = soup.find_all('p', class_='livro-specs')
+        year, publisher, isbn, language, book_info = '', '', '', '', ''
+        for spec in specs:
+            if 'Ano' in str(spec.span.string):
+                year = spec.span.next_sibling.strip('\n ')
+            elif 'Editora' in str(spec.span.string):
+                publisher = spec.a.span.string
+            elif 'ISBN' in str(spec.span.string):
+                isbn = spec.span.next_sibling.strip('\n ')
+            elif 'Idioma' in str(spec.span.string):
+                language = spec.span.next_sibling.strip('\n ')
+            elif 'Descrição' in str(spec.span.string):
+                book_info = spec.find('span', class_='description-text').string.strip('\n ')
+        return {
+            "title": title,
+            "authors": authors,
+            "publisher": publisher,
+            "price": price,
+            "info": book_info,
+            "year": year,
+            "isbn": isbn,
+            "edition": '',
+            "pages": '',
+            "language": language
+        }
