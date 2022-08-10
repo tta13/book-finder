@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import os
 from dotenv import load_dotenv
 import urllib.robotparser
+from urllib.robotparser import RobotFileParser
 import re
 import time
 from selenium import webdriver
@@ -19,6 +20,13 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s:%(message)s',
     level=logging.INFO)
 
+class CustomRobotParser(RobotFileParser):
+    def read_file(self, webdriver):
+        """Reads the robots.txt URL with Selenium and feeds it to the parser."""
+        webdriver.get(self.url)
+        page_source = webdriver.page_source
+        self.parse(page_source.splitlines())
+
 class Crawler:
     def __init__(self, url, pages_limit):
         self.visited_urls = []
@@ -27,10 +35,10 @@ class Crawler:
         self.pages_limit = pages_limit
         self.default_delay = 15
         self.domain = self.get_url_domain(url)
-        self.rp = urllib.robotparser.RobotFileParser()
-        self.rp.set_url(f"https://{self.get_url_netloc(url)}/robots.txt")
-        self.rp.read()
         self.driver = self.init_webdriver()
+        self.rp = CustomRobotParser()
+        self.rp.set_url(f"https://{self.get_url_netloc(url)}/robots.txt")
+        self.rp.read_file(self.driver)
         self.urls_to_visit = []
         if self.can_visit_url(url):
             self.urls_to_visit.append(url)
