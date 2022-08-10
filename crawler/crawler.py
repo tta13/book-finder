@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import logging
+from random import randrange
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 import os
@@ -33,7 +34,7 @@ class Crawler:
         self.logger = logging.getLogger('crawler_logger')
         self.pages_counter = 0
         self.pages_limit = pages_limit
-        self.default_delay = 15
+        self.default_delay = lambda: randrange(1.0, 4.0)
         self.domain = self.get_url_domain(url)
         self.driver = self.init_webdriver()
         self.rp = CustomRobotParser()
@@ -115,7 +116,7 @@ class Crawler:
         if self.rp.crawl_delay("*"):
             time.sleep(self.rp.crawl_delay("*"))
         else:
-            time.sleep(self.default_delay)
+            time.sleep(self.default_delay())
 
     @abstractmethod
     def add_url_to_visit(self, url):
