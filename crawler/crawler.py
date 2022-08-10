@@ -135,13 +135,12 @@ class Crawler:
     def run(self):
         while self.urls_to_visit and self.pages_counter < self.pages_limit:
             url = self.get_url_to_visit()
+            self.visited_urls.append(url)
             self.logger.info(f'Crawling: {url}')
             try:
                 self.crawl(url)
             except Exception:
                 self.logger.exception(f'Failed to crawl: {url}')
-            finally:
-                self.visited_urls.append(url)
 
 class BFSCrawler(Crawler):
     def add_url_to_visit(self, url):
