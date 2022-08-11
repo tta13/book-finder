@@ -5,7 +5,6 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 import os
 from dotenv import load_dotenv
-import re
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
