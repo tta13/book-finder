@@ -1,5 +1,5 @@
-from wrapper import TravessaWrapper
+from wrapper import Book7Wrapper
 
 if __name__ == '__main__':
-    wrapper = TravessaWrapper('../data/crawled/')
+    wrapper = Book7Wrapper('../data/crawled/')
     wrapper.wrap()

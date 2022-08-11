@@ -384,3 +384,59 @@ class TravessaWrapper(Wrapper):
             "pages": pages,
             "language": language
         }
+
+class Book7Wrapper(Wrapper):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        self.domain = 'book7'
+        self.path = f'{base_path}/{self.domain}'
+    
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        title_h = soup.find('h1', class_='product__name')
+        title = title_h.string.strip('\n ') if title_h else ''
+        description = soup.find('div', class_='info')
+        info = ''
+        if description:
+            for child in description.children:
+                if child.name == 'p':
+                    info = child.text.strip('\n ')
+        publisher_and_author = soup.find('div', class_='product__descriptions')
+        authors, publisher = [], ''
+        if publisher_and_author:
+            for c in publisher_and_author.children:
+                if not c.name == 'p': continue
+                split_content = c.text.strip(' ').split(':')
+                name, content = split_content[0], split_content[1]
+                if 'autor' in name.lower():
+                    authors = [('').join(reversed(x.split(','))).strip() for x in content.split(';')]
+                if 'marca' in name.lower():
+                    publisher = content.strip('\n ')
+        price_h = soup.find('h4', id='price__best')
+        price = price_h.text.strip('\n ') if price_h else ''
+        content_specification = soup.find('div', class_='content__specification')
+        content_table = content_specification.table if content_specification else None
+        isbn, year, edition, pages = '', '', '', ''
+        if content_table:
+            for tr in content_table.find_all('tr'):
+                name, content = tr.th, tr.td
+                if not name or not content: continue
+                if 'ean' in name.string.lower():
+                    isbn = content.text.strip('\n ')
+                elif 'ano da edição' in name.string.lower():
+                    year = content.text.strip('\n ')
+                elif 'edição' in name.string.lower():
+                    edition = content.text.strip('\n ')
+                elif 'páginas' in name.string.lower():
+                    pages = content.text.strip('\n ')
+        return {
+            "title": title,
+            "authors": authors,
+            "publisher": publisher,
+            "price": price,
+            "info": info,
+            "year": year,
+            "isbn": isbn,
+            "edition": edition,
+            "pages": pages,
+            "language": ''
+        }
