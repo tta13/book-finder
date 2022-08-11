@@ -12,6 +12,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import tldextract
 import datetime
 from robotparser import CustomRobotParser
+import json
 
 load_dotenv()
 
@@ -25,8 +26,14 @@ class Crawler:
         self.logger = logging.getLogger('crawler_logger')
         self.pages_counter = 0
         self.pages_limit = pages_limit
-        self.default_delay = lambda: randrange(1.0, 4.0)
         self.domain = self.get_url_domain(url)
+        with open('domain_config.json') as c:
+            self.domain_config = json.load(c)
+        try:
+            delay_range = self.domain_config[self.domain]['crawl_delay_range']
+            self.default_delay = lambda: randrange(delay_range[0], delay_range[1])
+        except:
+            self.default_delay = lambda: randrange(10, 16)
         self.driver = self.init_webdriver()
         self.rp = CustomRobotParser()
         self.rp.set_url(f"https://{self.get_url_netloc(url)}/robots.txt")
