@@ -440,3 +440,57 @@ class Book7Wrapper(Wrapper):
             "pages": pages,
             "language": ''
         }
+
+class LivrariaFlorenceWrapper(Wrapper):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        self.domain = 'livrariaflorence'
+        self.path = f'{base_path}/{self.domain}'
+
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        title_h = soup.find('h1', class_='fbits-produto-nome')
+        title = title_h.string.strip() if title_h else ''
+        isbn_div = soup.find('div', class_='fbits-sku')
+        isbn = isbn_div.string.replace('ISBN:', '').strip() if isbn_div else ''
+        price_div = soup.find('div', class_='precoPor')
+        price = price_div.string.strip() if price_div else ''
+        info_div = soup.find('div', id='conteudo-0')
+        info = ''
+        if info_div.div and info_div.div.div:
+            info = info_div.div.div.text.strip('\n ').replace(u'\xa0', u' ')
+        details = soup.find('div', class_='infolivro')
+        edition, year, language, authors, pages, publisher = '', '', '', [], '', ''
+        if details:
+            for c in details.descendants:
+                if c.name == 'br': continue
+                if c.name == 'strong':
+                    name, content = c.string.strip().lower(), c.next_sibling.strip()
+                    if 'edição' in name:
+                        edition = content
+                    elif 'idioma' in name:
+                        language = content
+                    elif 'páginas' in name:
+                        pages = content
+                    elif 'ano' in name:
+                        year = content
+                    elif 'editora' in name:
+                        publisher = content
+                    elif 'autor' in name:
+                        authors = [(' ').join(reversed(x.strip().split(','))).strip() for x in content.split('-')]
+        if publisher == '':
+            pub_div = soup.find('div', id='dados-livro')
+            if pub_div and pub_div.ul:
+                pub = pub_div.ul.find('a', class_='aEditoraLivro')
+                publisher = pub.string.strip() if pub else ''
+        return {
+            "title": title,
+            "authors": authors,
+            "publisher": publisher,
+            "price": price,
+            "info": info,
+            "year": year,
+            "isbn": isbn,
+            "edition": edition,
+            "pages": pages,
+            "language": language
+        }
