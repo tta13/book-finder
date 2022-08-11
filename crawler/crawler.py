@@ -5,8 +5,6 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 import os
 from dotenv import load_dotenv
-import urllib.robotparser
-from urllib.robotparser import RobotFileParser
 import re
 import time
 from selenium import webdriver
@@ -14,19 +12,13 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 import tldextract
 import datetime
+from robotparser import CustomRobotParser
 
 load_dotenv()
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)s:%(message)s',
     level=logging.INFO)
-
-class CustomRobotParser(RobotFileParser):
-    def read_file(self, webdriver):
-        """Reads the robots.txt URL with Selenium and feeds it to the parser."""
-        webdriver.get(self.url)
-        page_source = webdriver.page_source
-        self.parse(page_source.splitlines())
 
 class Crawler:
     def __init__(self, url, pages_limit):
