@@ -494,3 +494,51 @@ class LivrariaFlorenceWrapper(Wrapper):
             "pages": pages,
             "language": language
         }
+
+class LivrariaDaVilaWrapper(Wrapper):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        self.domain = 'livrariadavila'
+        self.path = f'{base_path}/{self.domain}'
+
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        title_div = soup.find('div', id='nome')
+        title = title_div.text.strip('\n ') if title_div else ''
+        authors_div = soup.find('div', id='autor')
+        authors = authors_div.text.strip('\n ').split(', ') if authors_div else []
+        publisher_div = soup.find('div', id='marca')
+        publisher = publisher_div.text.strip('\n ') if publisher_div else ''
+        price_tag = soup.find('strong', class_='skuBestPrice')
+        price = price_tag.string.strip() if price_tag else ''
+        info_div = soup.find('div', id='descricao')
+        info = info_div.text.strip('\n ') if info_div else ''
+        isbn, language, year, pages, edition = '', '', '', '', ''
+        details = soup.find('div', id='caracteristicas')
+        tables = details.find_all('table') if details else []
+        for table in tables:
+            for tr in table.find_all('tr'):
+                th, td = tr.th, tr.td
+                if not (th and td): continue
+                name, content = th.string.strip().lower(), td.string.strip()
+                if 'isbn' in name:
+                    isbn = content
+                elif 'ano de' in name:
+                    year = content
+                elif 'idioma' in name:
+                    language = content
+                elif 'páginas' in name:
+                    pages = content
+                elif 'edição' in name:
+                    edition = content
+        return {
+            "title": title,
+            "authors": authors,
+            "publisher": publisher,
+            "price": price,
+            "info": info,
+            "year": year,
+            "isbn": isbn,
+            "edition": edition,
+            "pages": pages,
+            "language": language
+        }
