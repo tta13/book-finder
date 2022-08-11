@@ -33,7 +33,7 @@ class Crawler:
             delay_range = self.domain_config[self.domain]['crawl_delay_range']
             self.default_delay = lambda: randrange(delay_range[0], delay_range[1])
         except:
-            self.default_delay = lambda: randrange(10, 16)
+            self.default_delay = lambda: randrange(2, 6)
         self.driver = self.init_webdriver()
         self.rp = CustomRobotParser()
         self.rp.set_url(f"https://{self.get_url_netloc(url)}/robots.txt")
