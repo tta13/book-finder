@@ -1,5 +1,5 @@
-from wrapper import LivrariaDaVilaWrapper
+from wrapper import MegaLeitoresWrapper
 
 if __name__ == '__main__':
-    wrapper = LivrariaDaVilaWrapper('../data/crawled/')
+    wrapper = MegaLeitoresWrapper('../data/crawled/')
     wrapper.wrap()

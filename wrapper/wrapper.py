@@ -542,3 +542,51 @@ class LivrariaDaVilaWrapper(Wrapper):
             "pages": pages,
             "language": language
         }
+
+class MegaLeitoresWrapper(Wrapper):
+    def __init__(self, base_path):
+        super().__init__(base_path)
+        self.domain = 'megaleitores'
+        self.path = f'{base_path}/{self.domain}'
+    
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        price_el = soup.find('span', class_='preco')
+        price = price_el.contents[0].strip('\n ') if price_el else ''
+        info_p = soup.find('p', class_='text-descricao')
+        info = info_p.text.strip('\n ') if info_p else ''
+        details = soup.find('div', id='reviews')
+        isbn, language, authors, title, publisher, year, pages, edition = '', '', [], '', '', '', '', ''
+        if details:
+            for p in details.find_all('p'):
+                if len(p.contents) < 2: continue
+                label, content = p.contents[0].string.lower(), p.contents[1]
+                if 'isbn' in label:
+                    isbn = content.strip('\n ')
+                elif 'idioma' in label:
+                    language = content.strip()
+                elif 'autor' in label:
+                    content = p.contents[2]
+                    authors = content.string.split(' e ')
+                elif 'título' in label:
+                    title = content.strip()
+                elif 'editora' in label:
+                    content = p.contents[2]
+                    publisher = content.string.strip()
+                elif 'ano' in label:
+                    year = content.strip()
+                elif 'edição' in label:
+                    edition = content.strip()
+                elif 'páginas' in label:
+                    pages = content.strip()
+        return {
+            "title": title,
+            "authors": authors,
+            "publisher": publisher,
+            "price": price,
+            "info": info,
+            "year": year,
+            "isbn": isbn,
+            "edition": edition,
+            "pages": pages,
+            "language": language
+        }
