@@ -1,7 +1,6 @@
 from wrapper import *
 import os, json
 
-
 #from .wrapper import *
 
 CRAWLED_DATA_PATH = '../data/crawled/'
@@ -11,6 +10,14 @@ def recall(c, n): return c / n
 def precision(c, e): return c / e
 
 def f_measure(r, p): return 2*(r*p)/(r+p)
+
+def compare_extractions(key, generic_extraction, baseline_extraction):
+    if generic_extraction == '': return False
+    if key == 'authors':
+        for a in baseline_extraction:
+            if a in generic_extraction: return True
+    elif key == 'edition': return generic_extraction in baseline_extraction
+    else: return baseline_extraction in generic_extraction
 
 def compare_strategies():
     extractions_possible, extractions_made, extractions_correct = 0, 0, 0
@@ -30,7 +37,7 @@ def compare_strategies():
                 baseline_extraction = baseline[key]
                 if baseline_extraction != '' and baseline_extraction != []:
                     extractions_possible += 1
-                    if generic_extraction == baseline_extraction:
+                    if compare_extractions(key, generic_extraction, baseline_extraction):
                         extractions_correct += 1
                 if generic_extraction != '' and generic_extraction != []:
                     extractions_made += 1
