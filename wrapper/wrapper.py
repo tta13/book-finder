@@ -4,13 +4,15 @@ import os
 import re
 import json
 
+WRAPPED_DATA_PATH = '../data/wrapped'
+
 class Wrapper:
     def __init__(self, base_path):
         self.path = base_path
         self.domain = ''
     
     def save_page_info(self, book, content):
-        file_dir = os.path.join('..', 'data', 'wrapped', self.domain)
+        file_dir = os.path.join(WRAPPED_DATA_PATH, self.domain)
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
         file_path = os.path.join(file_dir, f"{book}.json")
@@ -34,7 +36,7 @@ class Wrapper:
 
 class GenericWrapper(Wrapper):
     def save_page_info(self, book, content):
-        file_dir = os.path.join('..', 'data', 'wrapped', self.domain)
+        file_dir = os.path.join(WRAPPED_DATA_PATH, self.domain)
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
         file_path = os.path.join(file_dir, f"{book}.generic.json")
@@ -769,3 +771,23 @@ class MegaLeitoresWrapper(Wrapper):
             "pages": pages,
             "language": language
         }
+
+class WrapperFactory():
+    def __init__(self) -> None:
+        pass
+    
+    def get_wrappers(self, base_path):
+        return [
+            AmazonWrapper(base_path),
+            CulturaWrapper(base_path),
+            CompanhiaWrapper(base_path),
+            EstanteWrapper(base_path),
+            SaraivaWrapper(base_path),
+            LeituraWrapper(base_path),
+            TravessaWrapper(base_path),
+            Book7Wrapper(base_path),
+            LivrariaDaVilaWrapper(base_path),
+            LivrariaFlorenceWrapper(base_path),
+            MegaLeitoresWrapper(base_path),
+            GenericWrapper(base_path)
+        ]
