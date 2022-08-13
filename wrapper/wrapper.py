@@ -1,6 +1,5 @@
 from abc import abstractmethod
-from pydoc import describe
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 import os
 import re
 import json
@@ -32,6 +31,186 @@ class Wrapper:
     @abstractmethod
     def extract_info(self, soup: BeautifulSoup) -> dict:
         pass
+
+class GenericWrapper(Wrapper):
+    def save_page_info(self, book, content):
+        file_dir = os.path.join('..', 'data', 'wrapped', self.domain)
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+        file_path = os.path.join(file_dir, f"{book}.generic.json")
+        print(f"Saving page info to: {file_path}")
+        try:
+            with open(file_path, 'w', encoding='utf-8') as outfile:
+                json.dump(content, outfile, ensure_ascii=False, indent=1)
+        except Exception:
+            print(f"Failed to save page info")
+
+    def wrap(self):
+        for domain in os.listdir(self.path):
+            self.domain = domain
+            dir = os.path.join(self.path, domain)
+            if not os.path.isdir(dir): continue
+            for book in os.listdir(dir):
+                file = os.path.join(dir, book)
+                if book.endswith('.html'):
+                    html = open(file, 'r', encoding='utf-8')
+                    self.save_page_info(book, self.extract_info(BeautifulSoup(html, 'html.parser')))
+
+    def extract_info(self, soup: BeautifulSoup) -> dict:
+        title_element = soup.find('title')
+        title = title_element.text.strip().split(' | ')[0] if title_element else ''
+        tables = soup.find_all('table')
+        isbn, author, year, edition, pages, publisher, language = '', '', '', '', '', '', ''
+        tags = ['span', 'li', 'p']
+        isbn_element = soup.body.find(lambda tag:
+        (tag.name in tags) and ('isbn' in tag.text.lower())
+        )
+        if tables:
+            for table in tables:
+                for tr in table.find_all('tr'):
+                    th, td = None, None
+                    tds = tr.find_all('td')
+                    if not tr.th and len(tds) > 1: th = th, td = tds[0], tds[1]
+                    else: th, td = tr.th, tr.td
+                    if not th or not td: continue
+
+                    if 'isbn' in th.text.lower() or 'código de' in th.text.lower() or 'ean' in th.text.lower():
+                        isbn = td.text.strip('\n ')
+                    elif 'autor' in th.text.lower():
+                        author = td.text.strip('\n ')
+                    elif 'ano' in th.text.lower():
+                        year = td.text.strip('\n ')
+                    elif 'edição' in th.text.lower():
+                        edition = td.text.strip('\n ')
+                    elif 'idioma' in th.text.lower():
+                        language = td.text.strip('\n ')
+                    elif 'editora' in th.text.lower():
+                        publisher = td.text.strip('\n ')
+                    elif 'páginas' in th.text.lower():
+                        pages = td.text.strip('\n ')
+
+        if isbn_element and isbn_element.parent and not isbn:
+            details_list = isbn_element.parent
+            field_pattern = {
+                'isbn': r'[0-9]{3}-?[0-9]{10}',
+                'ano': r'[0-9]{4}',
+                'páginas': r'[0-9]+',
+                'idioma': r'[A-zÀ-ú ]+',
+                'editora': r'[A-zÀ-ú ]+',
+                'autor': r'[A-zÀ-ú ,|;]+',
+                'edição': r'[0-9]+'
+            }
+            key = ''
+            for element in details_list.children:
+                text = ''
+                if isinstance(element, NavigableString): text = element.strip('\n ')
+                else: text = element.text.strip('\n ')
+
+                if text == '': continue
+                if key in field_pattern:
+                    result = re.search(field_pattern[key], text)
+                    if result:
+                        match = result.group()
+                        if key == 'isbn':
+                            isbn = match
+                        elif key == 'editora':
+                            publisher = match
+                        elif key == 'ano':
+                            year = match
+                        elif key == 'páginas':
+                            pages = match
+                        elif key == 'idioma':
+                            language = match
+                        elif key == 'edição':
+                            edition = match
+                        elif key == 'autor':
+                            author = match
+                            key = ''
+                        continue
+
+                if 'isbn' in text.lower() and isbn == '':
+                    key = 'isbn'
+                    text = text.replace('isbn', '').strip()
+                    if key in field_pattern:
+                        result = re.search(field_pattern[key], text)
+                        if result:
+                            isbn = result.group()
+                            key = ''
+                elif 'editora' in text.lower() or 'marca' in text.lower() and publisher == '':
+                    key = 'editora'
+                    text = text.replace('Editora', '').strip()
+                    text = text.replace('Marca', '').strip()
+                    text = text.replace('editora', '').strip()
+                    text = text.replace('marca', '').strip()
+                    if key in field_pattern:
+                        result = re.search(field_pattern[key], text)
+                        if result:
+                            publisher = result.group()
+                            key = ''
+                elif 'páginas' in text.lower() and pages == '':
+                    key = 'páginas'
+                    text = text.replace(key, '').strip()
+                    if key in field_pattern:
+                        result = re.search(field_pattern[key], text)
+                        if result:
+                            pages = result.group()
+                            key = ''
+                elif ('ano' in text.lower() or 'lançamento' in text.lower() or 'data' in text.lower()) and year == '':
+                    key = 'ano'
+                    text = text.replace(key, '').strip()
+                    if key in field_pattern:
+                        result = re.search(field_pattern[key], text)
+                        if result:
+                            year = result.group()
+                            key = ''
+                elif 'edição' in text.lower() and edition == '':
+                    key = 'edição'
+                    text = text.replace(key, '').strip()
+                    if key in field_pattern:
+                        result = re.search(field_pattern[key], text)
+                        if result:
+                            edition = result.group()
+                            key = ''
+                elif 'autor' in text.lower() and author == '':
+                    key = 'autor'
+                    text = text.replace(key, '').strip()
+                    text = text.replace('Autor', '')
+                    if key in field_pattern:
+                        result = re.search(field_pattern[key], text)
+                        if result:
+                            author = result.group()
+                            key = ''
+                elif 'idioma' in text.lower() and language == '':
+                    key = 'idioma'
+                    text = text.replace(key, '').strip()
+                    text = text.replace('Idioma', '')
+                    if key in field_pattern:
+                        result = re.search(field_pattern[key], text)
+                        if result:
+                            language = result.group().strip()
+                            key = ''
+        
+        price_tags = ['p', 'strong', 'span', 'h2', 'h4', 'div']
+        price_element = soup.body.find(price_tags, text=re.compile(r'R\$( )?(?!0)[0-9]+(,)[0-9]{2}'))
+        price = price_element.text.strip('\n ') if price_element else ''
+
+        info_element = soup.body.find(lambda tag: tag.name != 'script' and tag.string and 
+                                    ('Descrição' in tag.text or 'Informações do produto' in tag.text or 'Sinopse' in tag.text))
+        # print(info_element)
+        info = info_element.parent.get_text().strip('\n ') if info_element else ''
+        
+        return {
+            "title": title,
+            "authors": author,
+            "publisher": publisher,
+            "price": price,
+            "info": info,
+            "year": year,
+            "isbn": isbn,
+            "edition": edition,
+            "pages": pages,
+            "language": language
+        }
 
 class AmazonWrapper(Wrapper):
     def __init__(self, base_path):
