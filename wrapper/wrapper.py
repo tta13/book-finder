@@ -65,7 +65,7 @@ class GenericWrapper(Wrapper):
         isbn, author, year, edition, pages, publisher, language = '', '', '', '', '', '', ''
         tags = ['span', 'li', 'p']
         isbn_element = soup.body.find(lambda tag:
-        (tag.name in tags) and ('isbn' in tag.text.lower())
+            (tag.name in tags) and ('isbn' in tag.text.lower())
         )
         if tables:
             for table in tables:
@@ -127,7 +127,7 @@ class GenericWrapper(Wrapper):
                             edition = match
                         elif key == 'autor':
                             author = match
-                            key = ''
+                        key = ''
                         continue
 
                 if 'isbn' in text.lower() and isbn == '':
