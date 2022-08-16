@@ -13,6 +13,7 @@ import tldextract
 import datetime
 from robotparser import CustomRobotParser
 import json
+import requests
 
 load_dotenv()
 
@@ -121,12 +122,19 @@ class Crawler:
     def get_url_to_visit(self):
         pass
 
+    def verify_content_type(self, url):
+        url_content_type = requests.head(url).headers["Content-Type"]
+        return 'text/html' in url_content_type
+
     def crawl(self, url):
-        html = self.download_url(url)
-        self.save_page_source(html, url)
-        for url in self.get_linked_urls(url, html):
-            self.add_url_to_visit(url)
-        self.delay_crawling()
+        if self.verify_content_type(url):
+            html = self.download_url(url)
+            self.save_page_source(html, url)
+            for url in self.get_linked_urls(url, html):
+                self.add_url_to_visit(url)
+            self.delay_crawling()
+        else:
+            self.logger.info(f'Skipping due to unexpected content-type: {url}')
 
     def run(self):
         while self.urls_to_visit and self.pages_counter < self.pages_limit:
