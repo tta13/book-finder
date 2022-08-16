@@ -1,5 +1,6 @@
 # Other
-data/*
+data/*.html
+data/*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -125,6 +126,8 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.myenv
+.wrapper
 env/
 venv/
 ENV/
