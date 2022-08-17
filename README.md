@@ -4,4 +4,12 @@ Search engine and information retrieval tool for books
 ## Group
 * [Amanda Soares de Castro Moraes](https://github.com/amandascm/)
 * [Luís Eduardo Martins Alves](https://github.com/Luis-Alves2)
-* Tales Tomaz Alves
+* [Tales Tomaz Alves](https://github.com/tta13)
+
+## Milestones
+
+- [Crawler](/crawler/)
+- [Classifier](/classifier/)
+- [Wrapper](/wrapper/)
+- [Crawled data](/data/crawled/)
+- [Slides I](https://docs.google.com/presentation/d/1oatbT9H2xB26mJvtc81HOb7a5bKktGGPeio9vy2M3P4/edit?usp=sharing)
