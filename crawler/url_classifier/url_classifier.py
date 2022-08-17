@@ -17,7 +17,10 @@ import os
 
 class url_classifier():
     def __init__(self) -> None:
-        self.saved_model_path = os.path.join('.', "saved_model.joblib")
+        package_directory = os.path.dirname(os.path.abspath(__file__))
+        self.saved_model_path = os.path.join(package_directory, "saved_model.joblib")
+        if os.path.exists(self.saved_model_path):
+            self.saved_clf = joblib.load(self.saved_model_path)
         pass
 
     def train_classifier(self, save=False):
@@ -61,8 +64,7 @@ class url_classifier():
     
     def predict_score(self, url):
         x = [self.preprocess_url(url)]
-        pipeline = joblib.load(self.saved_model_path)
-        y = pipeline.predict_proba(x) # format: [[prob_0, prob_1]]
+        y = self.saved_clf.predict_proba(x) # format: [[prob_0, prob_1]]
         return (y[0][1]) # returns prob of being a book page url
     
     def load_data(self):
