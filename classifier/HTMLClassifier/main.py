@@ -6,4 +6,4 @@ if __name__ == '__main__':
     #print(rest)
     #clf.train_classifier()
     #clf.test_classifier()
-    clf.predict_score('2022-08-12_04.03.26.162585.html')
+    clf.predict_score(['2022-08-12_04.03.26.162585.html'])

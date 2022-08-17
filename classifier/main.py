@@ -2,10 +2,11 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
+from sklearn.pipeline import Pipeline
 from bs4 import BeautifulSoup
-
 import pathlib
 import os
+import numpy as np
 
 import time
 
@@ -386,9 +387,31 @@ if __name__ == '__main__':
     #Saving model
     import joblib
 
+    svc_saved = Pipeline([
+        ('vect', CountVectorizer()),
+        ('tfidf', TfidfTransformer()),
+        #('clf', MultinomialNB()),
+        #('clf', MLPClassifier(random_state=13, solver='adam', batch_size=1, hidden_layer_sizes=(4,), n_iter_no_change=8, tol=0.001)),
+        ('clf', SVC(random_state=42)),
+        ])
+
+    svc_saved.fit(souper_train, labels_train)
+
+
+    predicted = svc_saved.predict(souper_test)
+    print("TEST ACCURACY: ", np.mean(predicted == labels_test))
+    print(metrics.classification_report(labels_test, predicted))
+    print(metrics.confusion_matrix(labels_test, predicted))
+
+    predicted = svc_saved.predict(souper_train)
+    print("TRAIN ACCURACY: ", np.mean(predicted == labels_train))
+    print(metrics.classification_report(labels_train, predicted))
+    print(metrics.confusion_matrix(labels_train, predicted))
+
     # save the model to disk
-    model = text_clf5
-    filename = 'finalized_model.sav'
+    model = svc_saved
+    dirname = os.path.dirname(__file__)
+    filename = os.path.join(dirname, "HTMLClassifier","finalized_model.sav")
     joblib.dump(model, filename)
 
     ## load the model from disk
