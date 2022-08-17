@@ -14,6 +14,9 @@ import datetime
 from robotparser import CustomRobotParser
 import json
 import requests
+import url_classifier.url_classifier as url_clf
+from heap import Wrapper
+import heapq
 
 load_dotenv()
 
@@ -41,8 +44,12 @@ class Crawler:
         self.rp.read_file(self.driver)
         self.urls_to_visit = []
         if self.can_visit_url(url):
-            self.urls_to_visit.append(url)
+            self.add_url_to_visit(url)
+        self.setup()
     
+    @abstractmethod
+    def setup(self):
+        pass    
     
     def init_webdriver(self):
         options = webdriver.ChromeOptions()
@@ -147,6 +154,9 @@ class Crawler:
                 self.logger.exception(f'Failed to crawl: {url}')
 
 class BFSCrawler(Crawler):
+    def setup(self):
+        return
+
     def add_url_to_visit(self, url):
         if url not in self.visited_urls and url not in self.urls_to_visit:
             self.urls_to_visit.append(url)
@@ -155,12 +165,29 @@ class BFSCrawler(Crawler):
         return self.urls_to_visit.pop(0)
 
 class HeuristicCrawler(Crawler):
+    def setup(self):
+        self.urls_to_visit = list(map(lambda item: Wrapper(item), self.urls_to_visit))
+        heapq.heapify(self.urls_to_visit)
+
     def add_url_to_visit(self, url):
-        if url not in self.visited_urls and url not in self.urls_to_visit:
-            self.urls_to_visit.append(url)
+        url_score = url_clf.url_classifier().predict_score(url)
+        if url not in self.visited_urls:
+            heapq.heappush(self.urls_to_visit, (url, url_score))
     
     def get_url_to_visit(self):
-        return self.urls_to_visit.pop(0)
+        # check if it is equal to the last visited, if it is: discard (duplicate url)
+        while self.urls_to_visit:
+            next = heapq.heappop(self.urls_to_visit)
+            try:
+                next = next.val
+            except:
+                pass
+            finally:
+                if self.visited_urls:
+                    if next[0] != self.visited_urls[-1]:
+                        return next[0]
+                else:
+                    return next[0]
 
 class CrawlerFactory():
     def __init__(self) -> None:
