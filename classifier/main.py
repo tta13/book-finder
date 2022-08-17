@@ -94,10 +94,10 @@ if __name__ == '__main__':
     X = vectorizer.fit_transform(souper_train)
 
     tfidf_transformer = TfidfTransformer()
-    #X_tf_train = tfidf_transformer.fit_transform(X)
+    X_tf_train = tfidf_transformer.fit_transform(X)
 
     X_new_counts_test = vectorizer.transform(souper_test)
-    #X_new_tfidf_test = tfidf_transformer.transform(X_new_counts_test)
+    X_new_tfidf_test = tfidf_transformer.transform(X_new_counts_test)
 
     # tf_transformer = TfidfTransformer(use_idf=False).fit(X)
     # X_tf = tf_transformer.transform(X)
@@ -108,10 +108,10 @@ if __name__ == '__main__':
     from sklearn.naive_bayes import MultinomialNB
     #print(listoflabels)
     start = time.time()
-    text_clf = MultinomialNB().fit(X, labels_train)
+    text_clf = MultinomialNB().fit(X_tf_train, labels_train)
     stop = time.time()
 
-    predicted = text_clf.predict(X_new_counts_test)
+    predicted = text_clf.predict(X_new_tfidf_test)
 
     print(len(souper_test))
     print(len(souper_train))
@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     print('==================')
 
-    predicted = text_clf.predict(X)
+    predicted = text_clf.predict(X_tf_train)
     print("train :")
     precision, recall, f1, _ = precision_recall_fscore_support(labels_train, predicted, labels=[1, 0])
     acuracia = accuracy_score(labels_train, predicted)
@@ -146,10 +146,10 @@ if __name__ == '__main__':
     ###SVMCLASSIFIER/Gradient Bossting Classifier -> SVM
     from sklearn.linear_model import SGDClassifier
     start = time.time()
-    text_clf2 = SGDClassifier(random_state=42).fit(X, labels_train)
+    text_clf2 = SGDClassifier(random_state=42).fit(X_tf_train, labels_train)
     stop = time.time()
 
-    predicted = text_clf2.predict(X_new_counts_test)
+    predicted = text_clf2.predict(X_new_tfidf_test)
 
     print("SGDClassifier   ")
 
@@ -165,7 +165,7 @@ if __name__ == '__main__':
 
     print('==================')
 
-    predicted = text_clf2.predict(X)
+    predicted = text_clf2.predict(X_tf_train)
     print("train :")
     precision, recall, f1, _ = precision_recall_fscore_support(labels_train, predicted, labels=[1, 0])
     acuracia = accuracy_score(labels_train, predicted)
@@ -181,10 +181,10 @@ if __name__ == '__main__':
     from sklearn.linear_model import LogisticRegression
     start = time.time()
     
-    text_clf3 = LogisticRegression(random_state=42).fit(X, labels_train)
+    text_clf3 = LogisticRegression(random_state=42).fit(X_tf_train, labels_train)
     stop = time.time()
 
-    predicted = text_clf3.predict(X_new_counts_test)
+    predicted = text_clf3.predict(X_new_tfidf_test)
 
     # text_clf3.fit(souper, listoflabels)
 
@@ -208,7 +208,7 @@ if __name__ == '__main__':
 
     print('==================')
 
-    predicted = text_clf3.predict(X)
+    predicted = text_clf3.predict(X_tf_train)
     print("train :")
     precision, recall, f1, _ = precision_recall_fscore_support(labels_train, predicted, labels=[1, 0])
     acuracia = accuracy_score(labels_train, predicted)
@@ -227,10 +227,10 @@ if __name__ == '__main__':
     start = time.time()
     
     #text_clf4 = DecisionTreeClassifier(criterion='entropy', max_depth = 5).fit(X, labels_train)
-    text_clf4 = DecisionTreeClassifier(random_state=42,criterion='entropy', max_depth = 4).fit(X, labels_train)
+    text_clf4 = DecisionTreeClassifier(random_state=42,criterion='entropy', max_depth = 4).fit(X_tf_train, labels_train)
     stop = time.time()
     
-    predicted = text_clf4.predict(X_new_counts_test)
+    predicted = text_clf4.predict(X_new_tfidf_test)
 
     print("DecisionTreeClassifier   ")
 
@@ -246,7 +246,7 @@ if __name__ == '__main__':
 
     print('==================')
 
-    predicted = text_clf4.predict(X)
+    predicted = text_clf4.predict(X_tf_train)
     print("train :")
     precision, recall, f1, _ = precision_recall_fscore_support(labels_train, predicted, labels=[1, 0])
     acuracia = accuracy_score(labels_train, predicted)
@@ -262,10 +262,10 @@ if __name__ == '__main__':
     from sklearn.svm import SVC
     start = time.time()
     
-    text_clf5 = SVC(random_state=42).fit(X, labels_train)
+    text_clf5 = SVC(random_state=42).fit(X_tf_train, labels_train)
     stop = time.time()
 
-    predicted = text_clf5.predict(X_new_counts_test)
+    predicted = text_clf5.predict(X_new_tfidf_test)
 
     # text_clf5 = Pipeline([
     #     ('vect', CountVectorizer()),
@@ -295,7 +295,7 @@ if __name__ == '__main__':
 
     print('==================')
 
-    predicted = text_clf5.predict(X)
+    predicted = text_clf5.predict(X_tf_train)
     print("train :")
     precision, recall, f1, _ = precision_recall_fscore_support(labels_train, predicted, labels=[1, 0])
     acuracia = accuracy_score(labels_train, predicted)
@@ -306,7 +306,42 @@ if __name__ == '__main__':
     print(f"Training time: {stop - start}s")
     print('\n')
 
-    ### GRID SEARCH
+    ###Decision Tree Classifier
+    from sklearn.neural_network import MLPClassifier
+    start = time.time()
+    
+    #text_clf4 = DecisionTreeClassifier(criterion='entropy', max_depth = 5).fit(X, labels_train)
+    text_clf6 = MLPClassifier(random_state=42, max_iter=300).fit(X_tf_train, labels_train)
+    stop = time.time()
+    
+    predicted = text_clf6.predict(X_new_tfidf_test)
+
+    print("MLP   ")
+
+    precision, recall, f1, _ = precision_recall_fscore_support(labels_test, predicted, labels=[1, 0])
+    acuracia = accuracy_score(labels_test, predicted)
+    print("Accuracy:", acuracia)
+    print("Precision:", precision)
+    print("recall:", recall)
+    print("f1:", f1)
+    print(f"Training time: {stop - start}s")
+    
+    print('\n')
+
+    print('==================')
+
+    predicted = text_clf6.predict(X_tf_train)
+    print("train :")
+    precision, recall, f1, _ = precision_recall_fscore_support(labels_train, predicted, labels=[1, 0])
+    acuracia = accuracy_score(labels_train, predicted)
+    print("Accuracy:", acuracia)
+    print("Precision:", precision)
+    print("recall:", recall)
+    print("f1:", f1)
+    print(f"Training time: {stop - start}s")
+    print('\n')
+
+    ### DECISION TREE GRID SEARCH
     from sklearn.model_selection import GridSearchCV
 
     #Cs = [0.0001,0.001, 0.01, 0.1, 1, 10]
@@ -321,11 +356,11 @@ if __name__ == '__main__':
         
     start = time.time()
     
-    gs_clf = gs_clf.fit(X, labels_train)
+    gs_clf = gs_clf.fit(X_tf_train, labels_train)
 
     stop = time.time()
 
-    print(gs_clf.best_score_)
+    #print(gs_clf.best_score_)
 
     print('best params: ')
     for param_name in sorted(parameters.keys()):
@@ -337,7 +372,7 @@ if __name__ == '__main__':
     from sklearn import metrics
 
     print('test ')
-    predicted = gs_clf.best_estimator_.predict(X_new_counts_test)
+    predicted = gs_clf.best_estimator_.predict(X_new_tfidf_test)
     precision, recall, f1, _ = precision_recall_fscore_support(labels_test, predicted, labels=[1, 0])
     acuracia = accuracy_score(labels_test, predicted)
     print("Accuracy:", acuracia)
@@ -350,7 +385,53 @@ if __name__ == '__main__':
     print('==================================')
 
     print('train ')
-    predicted = gs_clf.best_estimator_.predict(X)
+    predicted = gs_clf.best_estimator_.predict(X_tf_train)
+    precision, recall, f1, _ = precision_recall_fscore_support(labels_train, predicted, labels=[1, 0])
+    acuracia = accuracy_score(labels_train, predicted)
+    print("Accuracy:", acuracia)
+    print("Precision:", precision)
+    print("recall:", recall)
+    print("f1:", f1)
+    print(metrics.confusion_matrix(labels_train, predicted))
+    print(f"Training time: {stop - start}s")
+
+    ## SVM GRID SEARCH
+
+    # defining parameter range
+    param_grid_SVC = {'C': [0.1, 1, 10, 100, 1000],
+              'gamma': [1, 0.1, 0.01, 0.001, 0.0001],
+              'kernel': ['rbf']}
+ 
+    grid_SVC = GridSearchCV(SVC(random_state=42), param_grid_SVC, refit = True, verbose = 3)
+ 
+    start = time.time()
+
+    # fitting the model for grid search
+    grid_SVC.fit(X_tf_train, labels_train)
+
+    stop = time.time()
+    
+    #print(gs_clf.best_score_)
+
+    print('best params: ')
+    for param_name in sorted(param_grid_SVC.keys()):
+        print("%s: %r \n" % (param_name, grid_SVC.best_params_[param_name]))
+
+    print('test ')
+    predicted = grid_SVC.best_estimator_.predict(X_new_tfidf_test)
+    precision, recall, f1, _ = precision_recall_fscore_support(labels_test, predicted, labels=[1, 0])
+    acuracia = accuracy_score(labels_test, predicted)
+    print("Accuracy:", acuracia)
+    print("Precision:", precision)
+    print("recall:", recall)
+    print("f1:", f1)
+    print(metrics.confusion_matrix(labels_test, predicted))
+    print(f"Training time: {stop - start}s")
+
+    print('==================================')
+
+    print('train ')
+    predicted = grid_SVC.best_estimator_.predict(X_tf_train)
     precision, recall, f1, _ = precision_recall_fscore_support(labels_train, predicted, labels=[1, 0])
     acuracia = accuracy_score(labels_train, predicted)
     print("Accuracy:", acuracia)
@@ -361,8 +442,15 @@ if __name__ == '__main__':
     print(f"Training time: {stop - start}s")
 
 
-    #df = pd.read_csv('rotulagem de dados.csv')
-    #test = 0
-    #for index, row in df.iterrows():
-    #    df['html'] = CrawlerFactory().make_crawler(url=row['url'], pages_limit=1).run()
+    import joblib
+
+    # save the model to disk
+    model = text_clf5
+    filename = 'finalized_model.sav'
+    joblib.dump(model, filename)
+
+    ## load the model from disk
+    #loaded_model = joblib.load(filename)
+    #result = loaded_model.score(X_test, Y_test)
+    #print(result)
 
