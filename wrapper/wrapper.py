@@ -221,12 +221,14 @@ class AmazonWrapper(Wrapper):
         self.path = f'{base_path}/{self.domain}'
 
     def extract_info(self, soup: BeautifulSoup) -> dict:
-        title = soup.find('span', id='productTitle').string.strip('\n ')
+        title_span = soup.find('span', id='productTitle')
+        title = title_span.string.strip('\n ') if title_span else ''
         info = ''
         description_div = soup.find('div', id='bookDescription_feature_div')
         if description_div:
             info = description_div.div.div.text.strip('\n ')
-        authors_spans = soup.find('div', id='bylineInfo').find_all('span', class_='author')
+        authors_info = soup.find('div', id='bylineInfo')
+        authors_spans = authors_info.find_all('span', class_='author') if authors_info else None
         authors = []
         if authors_spans:
             for author in authors_spans:
@@ -240,28 +242,29 @@ class AmazonWrapper(Wrapper):
             price = str(price_span.string).replace(u'\xa0', u' ')
         details = soup.find('div', id='detailBulletsWrapper_feature_div')
         publisher, year, isbn, edition, pages, language = '', '', '', '', '', ''
-        for li in details.div.ul.find_all('li'):
-            field = str(li.span.span.string)
-            content = str(li.span.find_all('span')[-1].string)
-            if 'Editora' in field:  
-                publication_info = content
-                if ';' in publication_info:
-                    split_publication_info = publication_info.split(';')
-                    publisher = split_publication_info[0]
-                    if 'edição' in split_publication_info[1]:
-                        year_and_edition_info = split_publication_info[1].split(' edição ')
-                        edition = year_and_edition_info[0].strip()
-                        year = re.search(r'[0-9][0-9][0-9][0-9]', year_and_edition_info[1]).group(0)
+        if details:
+            for li in details.div.ul.find_all('li'):
+                field = str(li.span.span.string)
+                content = str(li.span.find_all('span')[-1].string)
+                if 'Editora' in field:  
+                    publication_info = content
+                    if ';' in publication_info:
+                        split_publication_info = publication_info.split(';')
+                        publisher = split_publication_info[0]
+                        if 'edição' in split_publication_info[1]:
+                            year_and_edition_info = split_publication_info[1].split(' edição ')
+                            edition = year_and_edition_info[0].strip()
+                            year = re.search(r'[0-9][0-9][0-9][0-9]', year_and_edition_info[1]).group(0)
+                        else:
+                            year = re.search(r'[0-9][0-9][0-9][0-9]', split_publication_info[1]).group(0)
                     else:
-                        year = re.search(r'[0-9][0-9][0-9][0-9]', split_publication_info[1]).group(0)
-                else:
-                    publisher = str(li.span.find_all('span')[-1].string).strip()
-            elif 'Idioma' in field:
-                language = content
-            elif 'página' in content:
-                pages = re.search(r'[0-9]+', content).group(0)
-            elif 'ISBN' in field:
-                isbn = content
+                        publisher = str(li.span.find_all('span')[-1].string).strip()
+                elif 'Idioma' in field:
+                    language = content
+                elif 'página' in content:
+                    pages = re.search(r'[0-9]+', content).group(0)
+                elif 'ISBN' in field:
+                    isbn = content
         return {
             "title": title,
             "publisher": publisher,
@@ -282,6 +285,13 @@ class CulturaWrapper(Wrapper):
         self.path = f'{base_path}/{self.domain}'
 
     def extract_info(self, soup: BeautifulSoup) -> dict:
+        title = ''
+        authors = ''
+        year = ''
+        isbn = ''
+        edition = ''
+        pages = ''
+        language = ''
         def treat_author(author_string: str):
             authors = author_string.split('|')
             result = []
@@ -293,32 +303,36 @@ class CulturaWrapper(Wrapper):
                 name.reverse()
                 result.append(' '.join(name))
             return result
-        
-        title_div = soup.find("h1", class_="title_product").div
+        title_div_1 = soup.find("h1", class_="title_product")
+        title_div = title_div_1.div if title_div_1 else None
         if title_div:
             title = title_div.string
         publisher_div = soup.find('div', class_='publisher')
-        publisher = publisher_div.h2.div.a.string if publisher_div.h2.div else ''
+        pub0 = publisher_div.h2 if publisher_div else None
+        pub1 = pub0.div if pub0 else None
+        pub2 = pub1.a if pub1 else None
+        publisher = pub2.string if pub2 else ''
         info_div = soup.find('div', id='info-product')
         book_info = info_div.string.strip('\n ') if info_div else ''
         price_data = soup.find('em', class_='valor-por')
         price = price_data.strong.text if price_data else ''
         prod_spec = soup.find(class_='section-produto-especificacoes')
-        if not publisher:
-            publisher_data = prod_spec.find('td', class_='value-field Editora')
-            publisher = publisher_data.string if publisher_data else ''
-        author_data = prod_spec.find('td', class_='value-field Colaborador')
-        authors = treat_author(author_data.string) if author_data else []
-        isbn_data = prod_spec.find('td', class_='value-field ISBN')
-        isbn = isbn_data.string if isbn_data else ''  
-        language_data = prod_spec.find('td', class_='value-field Idioma')
-        language = language_data.string if isbn_data else ''
-        year_data = prod_spec.find('td', class_='value-field Ano')
-        year = year_data.string if year_data else ''
-        edition_data = prod_spec.find('td', class_='value-field Edicao')
-        edition = edition_data.string if edition_data else ''
-        pages_data = prod_spec.find('td', class_='value-field Paginas')
-        pages = pages_data.string if pages_data else ''
+        if prod_spec:
+            if not publisher:
+                publisher_data = prod_spec.find('td', class_='value-field Editora')
+                publisher = publisher_data.string if publisher_data else ''
+            author_data = prod_spec.find('td', class_='value-field Colaborador')
+            authors = treat_author(author_data.string) if author_data else []
+            isbn_data = prod_spec.find('td', class_='value-field ISBN')
+            isbn = isbn_data.string if isbn_data else ''  
+            language_data = prod_spec.find('td', class_='value-field Idioma')
+            language = language_data.string if isbn_data else ''
+            year_data = prod_spec.find('td', class_='value-field Ano')
+            year = year_data.string if year_data else ''
+            edition_data = prod_spec.find('td', class_='value-field Edicao')
+            edition = edition_data.string if edition_data else ''
+            pages_data = prod_spec.find('td', class_='value-field Paginas')
+            pages = pages_data.string if pages_data else ''
         return {
             "title": title,
             "publisher": publisher,
@@ -351,15 +365,16 @@ class CompanhiaWrapper(Wrapper):
         details = soup.find_all('div', class_='bloco_txt_detalhe')
         book_info = details[0].get_text().strip('\n ') if details else ''
         pages, year, isbn, publisher = '', '', '', ''
-        for span in details[1].find_all('span'):
-            if span.string == 'Páginas:':
-                pages = str(span.next_sibling).strip()
-            if span.string == 'Lançamento:':
-                year = str(span.next_sibling).split('/')[-1]
-            if span.string == 'ISBN:':
-                isbn = str(span.next_sibling).strip()
-            if span.string == 'Selo:':
-                publisher = str(span.next_sibling).strip()
+        if details:
+            for span in details[1].find_all('span'):
+                if span.string == 'Páginas:':
+                    pages = str(span.next_sibling).strip()
+                if span.string == 'Lançamento:':
+                    year = str(span.next_sibling).split('/')[-1]
+                if span.string == 'ISBN:':
+                    isbn = str(span.next_sibling).strip()
+                if span.string == 'Selo:':
+                    publisher = str(span.next_sibling).strip()
         return {
             "title": title,
             "authors": authors,
@@ -381,9 +396,11 @@ class EstanteWrapper(Wrapper):
 
     def extract_info(self, soup: BeautifulSoup) -> dict:
         title_h1 = soup.find('h1', class_='livro-titulo')
-        title = title_h1.string.strip('\n ') if title_h1 else ''
+        title_h1_2 = title_h1.string if title_h1 else ''
+        title = title_h1_2.strip('\n ') if title_h1_2 else ''
         authors_h2 = soup.find('h2', class_='livro-autor')
-        authors = authors_h2.a.span.string.split('; ') if authors_h2 else ''
+        authors_h2_2 = authors_h2.a.span if authors_h2 else ''
+        authors = authors_h2_2.string.split('; ') if authors_h2_2 else ''
         price_span = soup.find('span', class_='livro-preco-valor')
         price = price_span.string.strip('\n ') if price_span else ''
         specs = soup.find_all('p', class_='livro-specs')
@@ -634,11 +651,13 @@ class LivrariaFlorenceWrapper(Wrapper):
         isbn_div = soup.find('div', class_='fbits-sku')
         isbn = isbn_div.string.replace('ISBN:', '').strip() if isbn_div else ''
         price_div = soup.find('div', class_='precoPor')
-        price = price_div.string.strip() if price_div else ''
+        price_0 = price_div.string if price_div else ''
+        price = price_0.strip() if price_0 else ''
         info_div = soup.find('div', id='conteudo-0')
         info = ''
-        if info_div.div and info_div.div.div:
-            info = info_div.div.div.text.strip('\n ').replace(u'\xa0', u' ')
+        if info_div.div:
+            if info_div.div.div:
+                info = info_div.div.div.text.strip('\n ').replace(u'\xa0', u' ')
         details = soup.find('div', class_='infolivro')
         edition, year, language, authors, pages, publisher = '', '', '', [], '', ''
         if details:
