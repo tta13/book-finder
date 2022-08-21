@@ -66,4 +66,6 @@ def wrap_data():
         wrapper.wrap()
 
 if __name__ == '__main__':
+    #b = LivrariaFlorenceWrapper('../data/positive-bfs/').wrap()
+    #b = LivrariaFlorenceWrapper('../data/positive-heu/').wrap()
     compare_strategies()
