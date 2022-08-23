@@ -11,7 +11,7 @@ import joblib
 import numpy as np
 import os
 import shutil
-
+import pathlib
 class HTML_classifier():
     def __init__(self) -> None:
         package_directory = os.path.dirname(os.path.abspath(__file__))
@@ -21,39 +21,37 @@ class HTML_classifier():
         pass
 
     def predict_score(self, HTML):
-
         souper = []
         for htmls in HTML:
             arquive = open(htmls, encoding="utf8")
             soup = BeautifulSoup(arquive, 'html.parser')
             souper.append(soup.get_text())
+        y = self.saved_clf.predict(souper)
+        return (y)
 
-        #x = [self.preprocess_url(HTML)]
-        y = self.saved_clf.predict(souper) # format: [[prob_0, prob_1]]
-        return (y) # returns prob of being a book page url
-
-    def predict_list_html_hr(self, html_path_list):
-        responses = []
-        for html_path in html_path_list:
-            responses += self.predict_score(html_path)
-        harvest_ratio = sum(responses) / len(responses)
-        return harvest_ratio
+    def predict_all_subdirs_hr(self, base_dir):
+        subdirs_list = [os.path.join(base_dir, f) for f in os.listdir(base_dir)]
+        for dir in subdirs_list:
+            print(f'Starting to predict {dir} files...')
+            print(f'[HARVEST RATIO] {dir} HR = ',self.predict_subdirectory_hr(dir),'\n')
     
     def predict_subdirectory_hr(self, subdirectory):
         html_path_list = [os.path.join(subdirectory, f) for f in os.listdir(subdirectory)]
         results = self.predict_score(html_path_list)
         harvest_ratio = sum(results)/len(results)
-        self.prepare_html_for_wrapper(subdirectory, html_path_list, results)
+        self.prepare_html_for_wrapper(html_path_list, results)
         return harvest_ratio
     
-    def prepare_html_for_wrapper(self, subdirectory, html_path_list, results):
-        dominio = subdirectory.split('-')[0]
-        strategy = subdirectory.split('-')[1]
-        destin_dir = os.path.join('..', '..', 'data', f'positive-{strategy}', dominio)
-        html_file_list = os.listdir(subdirectory)
-        if not os.path.exists(destin_dir):
-            os.makedirs(destin_dir)
-        for i in range(len(results)):
-            destin_file = os.path.join(destin_dir, html_file_list[i])
-            if results[i] == 1:
-                shutil.copy(html_path_list[i], destin_file)
+    def prepare_html_for_wrapper(self, html_path_list, results):
+        if html_path_list:
+            path = pathlib.PurePath(html_path_list[0])
+            dominio = path.parent.name.split('-')[0]
+            strategy = path.parent.name.split('-')[1]
+            destin_dir = os.path.join('..', '..', 'data', f'positive-{strategy}', dominio)
+            if not os.path.exists(destin_dir):
+                os.makedirs(destin_dir)
+            print(f'Writing positive files to {destin_dir}...')
+            for i in range(len(results)):
+                if results[i] == 1:
+                    destin_file = os.path.join(destin_dir, os.path.basename(html_path_list[i]))
+                    shutil.copy(html_path_list[i], destin_file)
