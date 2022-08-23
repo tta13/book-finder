@@ -1,4 +1,5 @@
 from HTMLclassifier import HTML_classifier
+import os
 
 if __name__ == '__main__':
     clf = HTML_classifier()
@@ -7,29 +8,4 @@ if __name__ == '__main__':
     #clf.train_classifier()
     #clf.test_classifier()
     #clf.predict_score(['2022-08-12_04.03.26.162585.html'])
-    dirs = [
-        'amazon-bfs',
-        'amazon-heu',
-        'book7-bfs',
-        'book7-heu',
-        'companhiadasletras-bfs',
-        'companhiadasletras-heu',
-        'estantevirtual-bfs',
-        'estantevirtual-heu',
-        'leitura-bfs',
-        'leitura-heu',
-        'livrariacultura-bfs',
-        'livrariacultura-heu',
-        'livrariadavila-bfs',
-        'livrariadavila-heu',
-        'livrariaflorence-bfs',
-        'livrariaflorence-heu',
-        'megaleitores-bfs',
-        'megaleitores-heu',
-        'saraiva-bfs',
-        'saraiva-heu',
-        'travessa-bfs',
-        'travessa-heu'
-    ]
-    for direct in dirs:
-        print(f'{direct} HR= ',clf.predict_subdirectory_hr(direct))
+    clf.predict_all_subdirs_hr(os.path.join('..','..','data','crawled'))
