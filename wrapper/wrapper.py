@@ -767,7 +767,7 @@ class MegaLeitoresWrapper(Wrapper):
                     language = content.strip()
                 elif 'autor' in label:
                     content = p.contents[2]
-                    authors = content.string.split(' e ')
+                    authors = content.string.split(' e ') if content.string else []
                 elif 'título' in label:
                     title = content.strip()
                 elif 'editora' in label:
