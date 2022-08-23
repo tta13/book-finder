@@ -442,7 +442,8 @@ class SaraivaWrapper(Wrapper):
         price = price_p.string.strip() if price_p else ''
         info_div = soup.find('div', id='descricao')
         info = info_div.text.strip('\n ') if info_div else ''
-        features = soup.find('div', id='caracteristicas').div.div.div.table.tbody
+        features_div = soup.find('div', id='caracteristicas')
+        features = features_div.find('tbody') if features_div else None
         year, authors, isbn, edition, language, pages, publisher = '', [], '', '', '', '', ''
         if features:
             for tr in features.find_all('tr'):
