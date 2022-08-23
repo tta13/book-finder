@@ -655,7 +655,7 @@ class LivrariaFlorenceWrapper(Wrapper):
         price = price_0.strip() if price_0 else ''
         info_div = soup.find('div', id='conteudo-0')
         info = ''
-        if info_div.div:
+        if info_div and info_div.div:
             if info_div.div.div:
                 info = info_div.div.div.text.strip('\n ').replace(u'\xa0', u' ')
         details = soup.find('div', class_='infolivro')
@@ -664,7 +664,8 @@ class LivrariaFlorenceWrapper(Wrapper):
             for c in details.descendants:
                 if c.name == 'br': continue
                 if c.name == 'strong':
-                    name, content = c.string.strip().lower(), c.next_sibling.strip()
+                    name = c.string.lower().strip()
+                    content = c.next_sibling.strip() if isinstance(c.next_sibling, NavigableString) else ''
                     if 'edição' in name:
                         edition = content
                     elif 'idioma' in name:
