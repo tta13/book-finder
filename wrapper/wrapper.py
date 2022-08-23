@@ -313,7 +313,7 @@ class CulturaWrapper(Wrapper):
         pub2 = pub1.a if pub1 else None
         publisher = pub2.string if pub2 else ''
         info_div = soup.find('div', id='info-product')
-        book_info = info_div.string.strip('\n ') if info_div else ''
+        book_info = info_div.string.strip('\n ') if info_div and info_div.string else ''
         price_data = soup.find('em', class_='valor-por')
         price = price_data.strong.text if price_data else ''
         prod_spec = soup.find(class_='section-produto-especificacoes')
@@ -326,7 +326,7 @@ class CulturaWrapper(Wrapper):
             isbn_data = prod_spec.find('td', class_='value-field ISBN')
             isbn = isbn_data.string if isbn_data else ''  
             language_data = prod_spec.find('td', class_='value-field Idioma')
-            language = language_data.string if isbn_data else ''
+            language = language_data.string if language_data else ''
             year_data = prod_spec.find('td', class_='value-field Ano')
             year = year_data.string if year_data else ''
             edition_data = prod_spec.find('td', class_='value-field Edicao')
