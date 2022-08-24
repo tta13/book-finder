@@ -21,7 +21,6 @@ def compare_extractions(key, generic_extraction, baseline_extraction):
 
 def compare_strategies():
     extractions_possible, extractions_made, extractions_correct = 0, 0, 0
-    recall, precision, f_measure
     for domain in os.listdir(WRAPPED_DATA_PATH):
         dir = os.path.join(WRAPPED_DATA_PATH, domain)
         if not os.path.isdir(dir): continue
@@ -35,7 +34,7 @@ def compare_strategies():
             for key in baseline:
                 generic_extraction = generic[key]
                 baseline_extraction = baseline[key]
-                if baseline_extraction != '' and baseline_extraction != []:
+                if baseline_extraction != '' and baseline_extraction != [] and baseline_extraction:
                     extractions_possible += 1
                     if compare_extractions(key, generic_extraction, baseline_extraction):
                         extractions_correct += 1
@@ -66,6 +65,6 @@ def wrap_data():
         wrapper.wrap()
 
 if __name__ == '__main__':
-    #b = LivrariaFlorenceWrapper('../data/positive-bfs/').wrap()
-    #b = LivrariaFlorenceWrapper('../data/positive-heu/').wrap()
+    path = '../data/positive-bfs/'
+    GenericWrapper(path).wrap()
     compare_strategies()
