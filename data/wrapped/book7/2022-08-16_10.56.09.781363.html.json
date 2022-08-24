@@ -1,0 +1,14 @@
+{
+ "title": "Unity",
+ "authors": [
+  "William Pereira Alves"
+ ],
+ "publisher": "ALTA BOOKS",
+ "price": "",
+ "info": "O Unity É Certamente a Mais Conhecida Ferramenta de Desenvolvimento de Jogos, Tanto para Consoles de Videogames, Quanto para Computadores e Dispositivos Móveis (Smartphones e Tablets). Ele Oferece Muitos Recursos Poderosos Capazes de Gerar Resultados Finais Com Qualidade Bastante Profissional. Esses Recursos Tornam Possível a Criação de Jogos Em 2D (Principalmente No Estilo Plataforma) e 3D, e Compreendem Geração de Efeitos Físicos, Detecção de Colisão, Animação Por Meio de Sprites, Execução de Áudio (Efeitos Sonoros e Músicas), Além de Suporte À Criação de Scripts Com Uso da Linguagem C#.  Com Uma Linguagem Bastante Didática e Simplificada, Este Livro Aborda Os Principais Conceitos Necessários À Criação de Jogos Nos Dois Formatos (2D e 3D). Os Capítulos Iniciais Apresentam Um Breve Histórico dos Videogames, Os Fundamentos de Design de Jogos e Utilização do Blender (Software de Modelagem e Animação 3D), Introdução À Programação Em C# e Animação Com Sprites.  O Estudo Se Desenvolve Com a Criação de Dois Projetos de Jogos, Sendo que O Primeiro Corresponde a Um Jogo de Nave No Estilo Plataforma, No Qual O Leitor Aprenderá Sobre Animação dos Objetos Gráficos, Detecção de Colisão, Escrita de Scripts para Posicionamento de Objeto/Personagem Dentro da Cena, Uso do Sistema de Partículas e Pontuação do Jogo.  O Segundo Projeto É Uma Versão Em Formato 3D do Primeiro Jogo. Nesse Projeto, É Demonstrado Como Inserir Objetos Gráficos Criados No Blender e No Gimp (Um Editor de Imagens Open Source Muito Conhecido). Nele, Também É Abordado O Uso de Efeitos Físicos que Proporcionam Mais Realismo Aos Movimentos dos Objetos.  Em Razão de Sua Linguagem Simples e Clara, Este Livro Facilita O Entendimento dos Assuntos, O que Auxilia Bastante O Aprendizado. de Igual Modo, Os Códigos dos Scripts Em C# Foram Escritos Também Tendo Em Vista a Simplicidade, Sem Deixar de Lado a Eficiência No Processamento Durante Sua Execução. Como Forma de Fixar Os Conceitos Apresentados Pelos Capítulos, Eles Apresentam Diversos Exercícios Finais.",
+ "year": "2019",
+ "isbn": "9788550807324",
+ "edition": "1",
+ "pages": "256",
+ "language": ""
+}
