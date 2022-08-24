@@ -1,3 +1,4 @@
+from genericpath import isdir
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
@@ -30,13 +31,14 @@ class HTML_classifier():
         return (y)
 
     def predict_all_subdirs_hr(self, base_dir):
-        subdirs_list = [os.path.join(base_dir, f) for f in os.listdir(base_dir)]
+        subdirs_list = [os.path.join(base_dir, f) for f in os.listdir(base_dir) if os.path.join(base_dir, f) and not f.endswith('.rar')]
+        print(subdirs_list)
         for dir in subdirs_list:
             print(f'Starting to predict {dir} files...')
             print(f'[HARVEST RATIO] {dir} HR = ',self.predict_subdirectory_hr(dir),'\n')
     
     def predict_subdirectory_hr(self, subdirectory):
-        html_path_list = [os.path.join(subdirectory, f) for f in os.listdir(subdirectory)]
+        html_path_list = [os.path.join(subdirectory, f) for f in os.listdir(subdirectory) if f.endswith('.html')]
         results = self.predict_score(html_path_list)
         harvest_ratio = sum(results)/len(results)
         self.prepare_html_for_wrapper(html_path_list, results)
