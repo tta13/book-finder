@@ -1,12 +1,14 @@
+from io import BufferedReader
 import os
 import re
 import json
+import struct
 from string import punctuation
-from typing import Tuple
+from typing import Any, Tuple
 from bs4 import BeautifulSoup
 
 SPACES = r'( )+'
-PUNCTUATION = punctuation.replace('_', '')
+PUNCTUATION = punctuation.replace('_', '').replace('$', '') + '“”’‘–−―…'
 
 def create_doc_ids():
     paths = ['../data/positive-bfs/', '../data/positive-heu/']
@@ -61,7 +63,7 @@ def tokenize_fields(fields):
     desc = [f'{t}.description' for t in texts if t]
     return title + author + pub + desc 
 
-def pre_process_docs(doc_ids: dict, limit=None):
+def pre_process_docs(doc_ids: dict, limit: int=None):
     paths = ['../data/positive-bfs/', '../data/positive-heu/']
     processed_files = 0
     for path in paths:
@@ -79,7 +81,7 @@ def pre_process_docs(doc_ids: dict, limit=None):
                     processed_files += 1
                     yield doc_id, tokens
 
-def pre_process_fields(doc_ids: dict, limit=None):
+def pre_process_fields(doc_ids: dict, limit: int=None):
     path = '../data/wrapped/'
     processed_files = 0
     for domain in os.listdir(path):
@@ -100,14 +102,18 @@ def pre_process_fields(doc_ids: dict, limit=None):
 
 def merge_index(term_docs: list[Tuple[str, int]]):
     result = {}
+    last_term, last_doc = '', 0
     for term, doc in term_docs:
         if term not in result:
-            result[term] = {doc: 1}
-        else:
-            if doc not in result[term]:
-                result[term][doc] = 1
-            else:
-                result[term][doc] += 1
+            result[term] = [(doc, 1)]
+        elif term == last_term and doc == last_doc:
+            doc, frequency = result[term].pop()
+            frequency += 1
+            result[term].append((doc, frequency))
+        else: # term == last_term and doc != last_doc:
+            result[term].append((doc, 1))
+        last_term = term
+        last_doc = doc
     return result    
 
 def build_inv_index(doc_ids: dict):
@@ -117,7 +123,7 @@ def build_inv_index(doc_ids: dict):
         print(f'Processing doc: {doc_id}')
         for token in tokens:
             term_document.append((token, doc_id))
-    term_document = sorted(term_document, key=lambda x: x[0])
+    term_document = sorted(term_document, key=lambda x: (x[0], x[1]))
     return merge_index(term_document)
 
 def build_inv_index_fields(doc_ids: dict):
@@ -127,5 +133,90 @@ def build_inv_index_fields(doc_ids: dict):
         print(f'Processing doc: {doc_id}')
         for token in tokens:
             term_document.append((token, doc_id))
-    term_document = sorted(term_document, key=lambda x: x[0])
+    term_document = sorted(term_document, key=lambda x: (x[0], x[1]))
     return merge_index(term_document)
+
+def binary_search(arr: list[Any], x: Any) -> int:
+    low = 0
+    high = len(arr) - 1
+    mid = 0
+
+    while low <= high:
+ 
+        mid = (high + low) // 2
+ 
+        # If x is greater, ignore left half
+        if arr[mid] < x:
+            low = mid + 1
+ 
+        # If x is smaller, ignore right half
+        elif arr[mid] > x:
+            high = mid - 1
+ 
+        # means x is present at mid
+        else:
+            return mid
+ 
+    # If we reach here, then the element was not present
+    return -1
+
+def by4(f: BufferedReader):
+    data = f.read()
+    for i in range(0, len(data), 4):
+        yield data[i:i+4]
+
+def transform_binary_postings(postings: list):
+    int_postings = [struct.unpack('i', value)[0] for value in postings]
+    return [(x, y) for x, y in zip(int_postings[::2], int_postings[1::2])]
+    
+class InvertedIndex:
+    def __init__(self, inv_index: dict[str, list[Tuple[int, int]]]=None) -> None:
+        self.inv_index = inv_index
+        self.vocab = list(inv_index.keys()) if inv_index else None
+        self.postings = list(inv_index.values()) if inv_index else None
+
+    def __str__(self) -> str:
+        return self.inv_index.__str__()
+
+    def save_to_file(self, path, name):
+        if not os.path.exists(path):
+            os.makedirs(path)
+        vocab_path = os.path.join(path, f'{name}-vocab.txt')
+        postings_path = os.path.join(path, f'{name}-postings.txt')
+        vocab_file = open(vocab_path, 'w', encoding="utf-8")
+        postings_file = open(postings_path, 'wb')
+        for term, postings in self.inv_index.items():
+            vocab_file.write(f'{term}\n')
+            for doc, freq in postings:
+                postings_file.write(struct.pack('i', doc))
+                postings_file.write(struct.pack('i', freq))
+            postings_file.write(struct.pack('i', -1))
+        vocab_file.close()
+        postings_file.close()
+        return self
+
+    def load_from_file(self, vocab_path, postings_path):
+        vocab_file = open(vocab_path, 'r', encoding="utf-8")
+        postings_file = open(postings_path, 'rb')
+        self.vocab = [word for word in vocab_file.read().splitlines()]
+        i = 0
+        self.postings = [[]]
+        for rec in by4(postings_file):
+            value, = struct.unpack('i', rec)
+            if value == -1:
+                i += 1
+                self.postings.append([])
+            else:
+                self.postings[i].append(rec)
+        self.postings = self.postings[:-1]
+        vocab_file.close()
+        postings_file.close()
+        return self
+
+    def search_term(self, term: str) -> list[Tuple[int, int]]:
+        if not self.vocab: return []
+        index = binary_search(self.vocab, term)
+        if index < 0 or index >= len(self.vocab): return []
+        
+        return transform_binary_postings(self.postings[index])
+    
