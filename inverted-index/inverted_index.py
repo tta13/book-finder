@@ -1,4 +1,4 @@
-from io import BufferedReader
+from io import BufferedReader, BufferedWriter
 import os
 import re
 import json
@@ -7,24 +7,12 @@ from string import punctuation
 from typing import Any, Tuple
 from bs4 import BeautifulSoup
 
+# Consts
+
 SPACES = r'( )+'
 PUNCTUATION = punctuation.replace('_', '').replace('$', '') + '“”’‘–−―…'
 
-def create_doc_ids():
-    paths = ['../data/positive-bfs/', '../data/positive-heu/']
-    doc_ids = {}
-    curr_id = 0
-    for path in paths:
-        for domain in os.listdir(path):
-            dir = os.path.join(path, domain)
-            if not os.path.isdir(dir): continue
-            for book in os.listdir(dir):
-                if book.endswith('.html'):
-                    book = book.replace('.html', '')
-                    if book in doc_ids: continue
-                    doc_ids[book] = curr_id
-                    curr_id += 1
-    return doc_ids
+#region Pre-Processing
 
 def to_lower(text: str) -> str:
     return text.lower()
@@ -100,6 +88,25 @@ def pre_process_fields(doc_ids: dict, limit: int=None):
                 processed_files += 1
                 yield doc_id, tokens
 
+#endregion
+
+#region Indexing 
+def create_doc_ids():
+    paths = ['../data/positive-bfs/', '../data/positive-heu/']
+    doc_ids = {}
+    curr_id = 0
+    for path in paths:
+        for domain in os.listdir(path):
+            dir = os.path.join(path, domain)
+            if not os.path.isdir(dir): continue
+            for book in os.listdir(dir):
+                if book.endswith('.html'):
+                    book = book.replace('.html', '')
+                    if book in doc_ids: continue
+                    doc_ids[book] = curr_id
+                    curr_id += 1
+    return doc_ids
+
 def merge_index(term_docs: list[Tuple[str, int]]):
     result = {}
     last_term, last_doc = '', 0
@@ -135,7 +142,9 @@ def build_inv_index_fields(doc_ids: dict):
             term_document.append((token, doc_id))
     term_document = sorted(term_document, key=lambda x: (x[0], x[1]))
     return merge_index(term_document)
+#endregion
 
+#region Search
 def binary_search(arr: list[Any], x: Any) -> int:
     low = 0
     high = len(arr) - 1
@@ -159,7 +168,9 @@ def binary_search(arr: list[Any], x: Any) -> int:
  
     # If we reach here, then the element was not present
     return -1
+#endregion
 
+#region Compressing
 def by4(f: BufferedReader):
     data = f.read()
     for i in range(0, len(data), 4):
@@ -168,17 +179,73 @@ def by4(f: BufferedReader):
 def transform_binary_postings(postings: list):
     int_postings = [struct.unpack('i', value)[0] for value in postings]
     return [(x, y) for x, y in zip(int_postings[::2], int_postings[1::2])]
+
+def transform_compressed_bytes_postings(postings: list):
+    int_postings = [int(bytes_to_bitstring(b), 2) for b in postings]
+    result = []
+    acc_x = 0
+    for x, y in zip(int_postings[::2], int_postings[1::2]):
+        result.append((acc_x + x, y))
+        acc_x += x
+    return result
+
+def encode_number(number: int):
+    binary = decimal_to_binary(number)
+    count = 0
+    encoded_number = ''
+    parts = 0
+    for idx in range(len(binary), 0, -1):
+        if count != 6:
+            encoded_number = binary[idx-1] + encoded_number
+            count += 1
+        else:
+            if parts == 0:
+                encoded_number = '1' + binary[idx-1] + encoded_number
+                parts += 1
+            else:
+                encoded_number = '0' + binary[idx-1] + encoded_number
+                parts += 1
+            count = 0
+    if len(encoded_number) % 8 != 0:
+        zeros_needed = 8 - (len(encoded_number) % 8)
+        for idx in range(0, zeros_needed):
+            if idx == zeros_needed - 1:
+                if parts == 0:
+                    encoded_number = '1' + encoded_number
+                else:
+                    encoded_number = '0' + encoded_number
+            else:
+                encoded_number = '0' + encoded_number
+    
+    return encoded_number
+
+def decimal_to_binary(n: int):
+    return f'{n:b}'
+
+def str_by_8(s: str):
+    for i in range(0, len(s), 8):
+        yield s[i:i+8]
+
+def by1(f: BufferedReader):
+    data = f.read()
+    for i in range(0, len(data), 1):
+        yield data[i:i+1]
+
+def bitstring_to_bytes(s):
+    return int(s, 2).to_bytes((len(s) + 7) // 8, byteorder='big')
+
+def bytes_to_bitstring(b):
+    return f'{int(b.hex(), base=16):08b}'
+#endregion
     
 class InvertedIndex:
-    def __init__(self, inv_index: dict[str, list[Tuple[int, int]]]=None) -> None:
+    def __init__(self, inv_index: dict[str, list[Tuple[int, int]]]=None, compressed=True) -> None:
         self.inv_index = inv_index
         self.vocab = list(inv_index.keys()) if inv_index else None
         self.postings = list(inv_index.values()) if inv_index else None
+        self.compressed = compressed
 
-    def __str__(self) -> str:
-        return self.inv_index.__str__()
-
-    def save_to_file(self, path, name):
+    def save_uncompressed(self, path, name):
         if not os.path.exists(path):
             os.makedirs(path)
         vocab_path = os.path.join(path, f'{name}-vocab.txt')
@@ -195,10 +262,42 @@ class InvertedIndex:
         postings_file.close()
         return self
 
-    def load_from_file(self, vocab_path, postings_path):
+    def write_encoded_number_to_file(self, file: BufferedWriter, n: int):
+        new_n = encode_number(n)
+        for byte in str_by_8(new_n):
+            file.write(bitstring_to_bytes(byte))
+
+    def save_compressed(self, path, name):
+        if not os.path.exists(path):
+            os.makedirs(path)
+        vocab_path = os.path.join(path, f'{name}-vocab.txt')
+        postings_path = os.path.join(path, f'{name}-postings-packed.txt')
+        vocab_file = open(vocab_path, 'w', encoding="utf-8")
+        postings_file = open(postings_path, 'wb')
+        for term, postings in self.inv_index.items():
+            vocab_file.write(f'{term}\n')
+            last_doc = 0
+            for doc, freq in postings:
+                self.write_encoded_number_to_file(postings_file, doc - last_doc)
+                self.write_encoded_number_to_file(postings_file, freq)
+                last_doc = doc
+            postings_file.write(bitstring_to_bytes('0'))
+        vocab_file.close()
+        postings_file.close()
+        return self
+    
+    def save_to_file(self, path, name):
+        if self.compressed: return self.save_compressed(path, name)
+        return self.save_to_file(path, name)
+
+    def load_vocab(self, vocab_path):
         vocab_file = open(vocab_path, 'r', encoding="utf-8")
+        self.vocab = [word for word in vocab_file.read().splitlines()]        
+        vocab_file.close()
+
+    def load_uncompressed(self, vocab_path, postings_path):
+        self.load_vocab(vocab_path)
         postings_file = open(postings_path, 'rb')
-        self.vocab = [word for word in vocab_file.read().splitlines()]
         i = 0
         self.postings = [[]]
         for rec in by4(postings_file):
@@ -209,14 +308,40 @@ class InvertedIndex:
             else:
                 self.postings[i].append(rec)
         self.postings = self.postings[:-1]
-        vocab_file.close()
         postings_file.close()
         return self
+
+    def load_compressed(self, vocab_path, postings_path):
+        self.load_vocab(vocab_path)
+        postings_file = open(postings_path, 'rb')
+        i = 0        
+        number = ''
+        self.postings = [[]]
+        for rec in by1(postings_file):
+            s = bytes_to_bitstring(rec)
+            if int(s, 2) == 0:
+                i += 1
+                self.postings.append([])
+                continue
+            elif s[0] == '1':
+                number += s[1:]
+                self.postings[i].append(bitstring_to_bytes(number))
+                number = ''
+            else: # s[0] == '0':
+                number += s[1:]
+        self.postings = self.postings[:-1]
+        postings_file.close()
+        return self
+
+    def load_from_file(self, vocab_path, postings_path):
+        if self.compressed: return self.load_compressed(vocab_path, postings_path)
+        return self.load_uncompressed(vocab_path, postings_path)
 
     def search_term(self, term: str) -> list[Tuple[int, int]]:
         if not self.vocab: return []
         index = binary_search(self.vocab, term)
         if index < 0 or index >= len(self.vocab): return []
         
-        return transform_binary_postings(self.postings[index])
-    
+        if not self.compressed:
+            return transform_binary_postings(self.postings[index])
+        return transform_compressed_bytes_postings(self.postings[index])

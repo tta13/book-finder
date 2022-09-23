@@ -31,7 +31,7 @@ def save_field_inv_index(doc_ids):
     del index
 
 def load_field_inv_index():
-    return InvertedIndex().load_from_file(os.path.join(PATH, f'{FIELD_INDEX_FILENAME}-vocab.txt'), os.path.join(PATH, f'{FIELD_INDEX_FILENAME}-postings.txt'))
+    return InvertedIndex().load_from_file(os.path.join(PATH, f'{FIELD_INDEX_FILENAME}-vocab.txt'), os.path.join(PATH, f'{FIELD_INDEX_FILENAME}-postings-packed.txt'))
 
 def save_inv_index(doc_ids):
     inv_index = build_inv_index(doc_ids)
@@ -40,7 +40,7 @@ def save_inv_index(doc_ids):
     del index
 
 def load_inv_index():
-    return InvertedIndex().load_from_file(os.path.join(PATH, f'{INDEX_FILENAME}-vocab.txt'), os.path.join(PATH, f'{INDEX_FILENAME}-postings.txt'))
+    return InvertedIndex().load_from_file(os.path.join(PATH, f'{INDEX_FILENAME}-vocab.txt'), os.path.join(PATH, f'{INDEX_FILENAME}-postings-packed.txt'))
 
 def main():
     try:
@@ -49,16 +49,16 @@ def main():
         doc_ids = create_doc_ids()
         save_doc_ids(doc_ids)
 
-    try:
-        # Loading inverted indexes
-        field_index = load_field_inv_index()
-        index = load_inv_index()
-    except Exception:
-        # Saving the inverted indexes then loading files
-        save_field_inv_index(doc_ids)
-        save_inv_index(doc_ids)
-        field_index = load_field_inv_index()
-        index = load_inv_index()
+    # try:
+    #     # Loading inverted indexes
+    #     # field_index = load_field_inv_index()
+    #     # index = load_inv_index()
+    # except Exception:
+    # Saving the inverted indexes then loading files
+    save_field_inv_index(doc_ids)
+    save_inv_index(doc_ids)
+    field_index = load_field_inv_index()
+    index = load_inv_index()
 
     # Showing terms and postings on indexes
     print(len(field_index.vocab), len(field_index.postings))
