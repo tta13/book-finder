@@ -370,21 +370,25 @@ def save_doc_ids(doc_ids: dict):
     except Exception:
         print(f"Failed to save doc IDs")
 
-def save_field_inv_index(doc_ids):    
+def save_field_inv_index(doc_ids, compress=True):    
     inv_index = build_inv_index_fields(doc_ids)
-    index = InvertedIndex(inv_index).save_to_file(DATA_PATH, FIELD_INDEX_FILENAME)
+    index = InvertedIndex(inv_index, compressed=compress).save_to_file(DATA_PATH, FIELD_INDEX_FILENAME)
     del inv_index
     del index
 
-def load_field_inv_index():
-    return InvertedIndex().load_from_file(os.path.join(DATA_PATH, f'{FIELD_INDEX_FILENAME}-vocab.txt'), os.path.join(DATA_PATH, f'{FIELD_INDEX_FILENAME}-postings-packed.txt'))
+def load_field_inv_index(compress=True):
+    if not compress:
+        return InvertedIndex(compressed=compress).load_from_file(os.path.join(DATA_PATH, f'{FIELD_INDEX_FILENAME}-vocab.txt'), os.path.join(DATA_PATH, f'{FIELD_INDEX_FILENAME}-postings.txt'))
+    return InvertedIndex(compressed=compress).load_from_file(os.path.join(DATA_PATH, f'{FIELD_INDEX_FILENAME}-vocab.txt'), os.path.join(DATA_PATH, f'{FIELD_INDEX_FILENAME}-postings-packed.txt'))
 
-def save_inv_index(doc_ids):
+def save_inv_index(doc_ids, compress=True):
     inv_index = build_inv_index(doc_ids)
-    index = InvertedIndex(inv_index).save_to_file(DATA_PATH, INDEX_FILENAME)
+    index = InvertedIndex(inv_index, compressed=compress).save_to_file(DATA_PATH, INDEX_FILENAME)
     del inv_index
     del index
 
-def load_inv_index():
-    return InvertedIndex().load_from_file(os.path.join(DATA_PATH, f'{INDEX_FILENAME}-vocab.txt'), os.path.join(DATA_PATH, f'{INDEX_FILENAME}-postings-packed.txt'))
+def load_inv_index(compress=True):
+    if not compress:
+        return InvertedIndex(compressed=compress).load_from_file(os.path.join(DATA_PATH, f'{INDEX_FILENAME}-vocab.txt'), os.path.join(DATA_PATH, f'{INDEX_FILENAME}-postings.txt'))
+    return InvertedIndex(compressed=compress).load_from_file(os.path.join(DATA_PATH, f'{INDEX_FILENAME}-vocab.txt'), os.path.join(DATA_PATH, f'{INDEX_FILENAME}-postings-packed.txt'))
 #endregion
