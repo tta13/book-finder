@@ -7,10 +7,13 @@ from string import punctuation
 from typing import Any, Tuple
 from bs4 import BeautifulSoup
 
-# Consts
-
+#region Consts
 SPACES = r'( )+'
 PUNCTUATION = punctuation.replace('_', '').replace('$', '') + '“”’‘–−―…'
+DATA_PATH = os.path.join('..', 'data', 'inverted-index')
+INDEX_FILENAME = 'index'
+FIELD_INDEX_FILENAME = 'fieldIndex'
+#endregion
 
 #region Pre-Processing
 
@@ -237,7 +240,8 @@ def bitstring_to_bytes(s):
 def bytes_to_bitstring(b):
     return f'{int(b.hex(), base=16):08b}'
 #endregion
-    
+
+#region The InvertedIndex class
 class InvertedIndex:
     def __init__(self, inv_index: dict[str, list[Tuple[int, int]]]=None, compressed=True) -> None:
         self.inv_index = inv_index
@@ -345,3 +349,42 @@ class InvertedIndex:
         if not self.compressed:
             return transform_binary_postings(self.postings[index])
         return transform_compressed_bytes_postings(self.postings[index])
+#endregion
+
+#region Helper methods
+def load_doc_ids(path) -> dict:
+    try:
+        with open(path, 'r', encoding='utf-8') as file:
+            return json.load(file)
+    except Exception:
+        raise Exception
+
+def save_doc_ids(doc_ids: dict):
+    if not os.path.exists(DATA_PATH):
+        os.makedirs(DATA_PATH)
+    file_path = os.path.join(DATA_PATH, 'docIDs.json')
+    print(f"Saving doc IDs info to: {file_path}")
+    try:
+        with open(file_path, 'w', encoding='utf-8') as outfile:
+            json.dump(doc_ids, outfile, ensure_ascii=False, indent=1)
+    except Exception:
+        print(f"Failed to save doc IDs")
+
+def save_field_inv_index(doc_ids):    
+    inv_index = build_inv_index_fields(doc_ids)
+    index = InvertedIndex(inv_index).save_to_file(DATA_PATH, FIELD_INDEX_FILENAME)
+    del inv_index
+    del index
+
+def load_field_inv_index():
+    return InvertedIndex().load_from_file(os.path.join(DATA_PATH, f'{FIELD_INDEX_FILENAME}-vocab.txt'), os.path.join(DATA_PATH, f'{FIELD_INDEX_FILENAME}-postings-packed.txt'))
+
+def save_inv_index(doc_ids):
+    inv_index = build_inv_index(doc_ids)
+    index = InvertedIndex(inv_index).save_to_file(DATA_PATH, INDEX_FILENAME)
+    del inv_index
+    del index
+
+def load_inv_index():
+    return InvertedIndex().load_from_file(os.path.join(DATA_PATH, f'{INDEX_FILENAME}-vocab.txt'), os.path.join(DATA_PATH, f'{INDEX_FILENAME}-postings-packed.txt'))
+#endregion
