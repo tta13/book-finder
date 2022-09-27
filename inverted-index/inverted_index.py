@@ -5,6 +5,7 @@ import json
 import struct
 from string import punctuation
 from typing import Any, Tuple
+from unittest import result
 from bs4 import BeautifulSoup
 
 #region Consts
@@ -52,7 +53,10 @@ def tokenize_fields(fields):
     # description
     texts = tokenize_text(fields['info'])
     desc = [f'{t}.description' for t in texts if t]
-    return title + author + pub + desc 
+    # isbn
+    texts = tokenize_text(fields['isbn'])
+    isbn = [f'{t}.isbn' for t in texts if t]
+    return title + author + pub + desc + isbn
 
 def pre_process_docs(doc_ids: dict, limit: int=None):
     paths = ['../data/positive-bfs/', '../data/positive-heu/']
@@ -91,6 +95,45 @@ def pre_process_fields(doc_ids: dict, limit: int=None):
                 processed_files += 1
                 yield doc_id, tokens
 
+def count_frequent_fields(doc_ids: dict, limit: int=None):
+    path = '../data/wrapped/'
+    processed_files = 0
+    result = {
+        "title": 0,
+        "authors": 0,
+        "publisher": 0,
+        "price": 0,
+        "description": 0,
+        "year": 0,
+        "isbn": 0,
+        "edition": 0,
+        "pages": 0,
+        "language": 0
+    }
+    for domain in os.listdir(path):
+        dir = os.path.join(path, domain)
+        if not os.path.isdir(dir): continue
+        for book in os.listdir(dir):
+            if limit and processed_files >= limit: break
+            if book.endswith('.generic.json'): continue
+
+            if book.endswith('.json'):
+                file = os.path.join(dir, book)
+                json_file = open(file, 'r', encoding='utf-8')
+                fields = json.load(json_file)
+                if fields['title']: result['title'] += 1
+                if fields['authors']: result['authors'] += 1
+                if fields['publisher']: result['publisher'] += 1
+                if fields['price']: result['price'] += 1
+                if fields['info']: result['description'] += 1
+                if fields['year']: result['year'] += 1
+                if fields['isbn']: result['isbn'] += 1
+                if fields['edition']: result['edition'] += 1
+                if fields['pages']: result['pages'] += 1
+                if fields['language']: result['language'] += 1
+            processed_files += 1
+    print(f'processed: {processed_files}')
+    return {k: result[k] for k in list({k: v for k, v in sorted(result.items(), reverse=True, key=lambda item: item[1])}.keys())[:5]}
 #endregion
 
 #region Indexing 
@@ -292,7 +335,7 @@ class InvertedIndex:
     
     def save_to_file(self, path, name):
         if self.compressed: return self.save_compressed(path, name)
-        return self.save_to_file(path, name)
+        return self.save_uncompressed(path, name)
 
     def load_vocab(self, vocab_path):
         vocab_file = open(vocab_path, 'r', encoding="utf-8")
