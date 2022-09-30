@@ -13,5 +13,7 @@ Search engine and information retrieval tool for books
 - [Wrapper](/wrapper/)
 - [Crawled data](/data/crawled/)
 - [Extracted data](/data/wrapped/)
-- [Slides I](https://docs.google.com/presentation/d/1oatbT9H2xB26mJvtc81HOb7a5bKktGGPeio9vy2M3P4/edit?usp=sharing)
+- [Slides I](https://docs.google.com/presentation/d/1oatbT9H2xB26mJvtc81HOb7a5bKktGGPeio9vy2M3P4/view?usp=sharing)
 - [Video I](https://drive.google.com/file/d/1jE_3_5hpdxuBUR-ympyQzNhP1HXir0Gf/view?usp=sharing)
+- [Inverted Index](/data/inverted-index/)
+- [Slides II](https://docs.google.com/presentation/d/1A99vLJuXnCeUq5nR6NCyVuH1trXh5y6sXhDMa_yERb4/view?usp=sharing)
