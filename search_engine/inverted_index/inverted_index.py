@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 #region Consts
 SPACES = r'( )+'
 PUNCTUATION = punctuation.replace('_', '').replace('$', '') + '“”’‘–−―…'
-DATA_PATH = os.path.join('..', 'data', 'inverted-index')
+DATA_PATH = os.path.join('..', '..', 'data', 'inverted-index')
 INDEX_FILENAME = 'index'
 FIELD_INDEX_FILENAME = 'fieldIndex'
 #endregion
@@ -77,7 +77,7 @@ def pre_process_docs(doc_ids: dict, limit: int=None):
                     yield doc_id, tokens
 
 def pre_process_fields(doc_ids: dict, limit: int=None):
-    path = '../data/wrapped/'
+    path = os.path.join('..', '..', 'data', 'wrapped')
     processed_files = 0
     for domain in os.listdir(path):
         dir = os.path.join(path, domain)
@@ -96,7 +96,7 @@ def pre_process_fields(doc_ids: dict, limit: int=None):
                 yield doc_id, tokens
 
 def count_frequent_fields(doc_ids: dict, limit: int=None):
-    path = '../data/wrapped/'
+    path = os.path.join('..', '..', 'data', 'wrapped')
     processed_files = 0
     result = {
         "title": 0,
@@ -138,7 +138,7 @@ def count_frequent_fields(doc_ids: dict, limit: int=None):
 
 #region Indexing 
 def create_doc_ids():
-    paths = ['../data/positive-bfs/', '../data/positive-heu/']
+    paths = [os.path.join('..', '..', 'data', 'positive-bfs'), os.path.join('..', '..', 'data', 'positive-heu')]
     doc_ids = {}
     curr_id = 0
     for path in paths:

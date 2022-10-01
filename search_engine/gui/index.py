@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template, request, url_for, redirect
+from utils import *
 
 app = Flask(__name__)
 
@@ -28,6 +29,7 @@ def text_search():
     if not content:
         return render_template(os.path.join('home.html'), text_results=results['text_results'], required_field=True)
     else:
+        # call function here to generate ranking and return an array of responses
         results['field_results'] = []
         results['text_results'] = []
         len_res = len(results['text_results'])
@@ -49,6 +51,8 @@ def field_search():
     if not (title or publisher or authors or isbn or description):
         return render_template(os.path.join('home.html'), field_results=results['field_results'], required_field=True)
     else:
+        # call function here to generate ranking and return an array of responses
+        print(field_query(request.form))
         results['text_results'] = []
         results['field_results'] = []
         len_res = len(results['field_results'])
