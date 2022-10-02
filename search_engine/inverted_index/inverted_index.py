@@ -5,7 +5,7 @@ import json
 import struct
 from string import punctuation
 from typing import Any, Tuple
-from unittest import result
+from functools import cache
 from bs4 import BeautifulSoup
 
 #region Consts
@@ -277,9 +277,11 @@ def by1(f: BufferedReader):
     for i in range(0, len(data), 1):
         yield data[i:i+1]
 
+@cache
 def bitstring_to_bytes(s):
     return int(s, 2).to_bytes((len(s) + 7) // 8, byteorder='big')
 
+@cache
 def bytes_to_bitstring(b):
     return f'{int(b.hex(), base=16):08b}'
 #endregion
