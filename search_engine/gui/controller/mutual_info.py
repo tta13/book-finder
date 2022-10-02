@@ -1,5 +1,4 @@
-from search_engine.query import index, field_index
-import math
+from search_engine.query import field_index
 import numpy as np
 
 def get_docids_intersection(terms):
