@@ -30,14 +30,32 @@ a:hover {
     margin: 0 16px;
 }
 
+#search-form-container, .search-results-items {
+    padding: 0 8px;
+    overflow-y: auto;
+    scroll-behavior: contain;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: white white;
+}
+
+#search-form-container::-webkit-scrollbar, .search-results-items::-webkit-scrollbar {
+    display: block;
+    width: 6px;
+    height: 6px;
+    background-color: white;
+}
+#search-form-container::-webkit-scrollbar-thumb, .search-results-items::-webkit-scrollbar-thumb{
+    border-radius: 4px;
+    background: white;
+}
+
+#search-form-container:hover::-webkit-scrollbar-thumb, .search-results-items:hover::-webkit-scrollbar-thumb {
+  background: #CCCED8;
+}
+
 .section-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.search-results-items {
-    overflow-y: auto;
-    scroll-behavior: contain;
-    padding: 8px;
 }

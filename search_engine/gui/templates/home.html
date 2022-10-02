@@ -26,64 +26,64 @@
                   <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
                     <div class="card-body">
                         <form method="post" action='/search/field/' class="form-group">
-                            <label for="title">Título</label>
+                            <label for="title" class="col-form-label col-form-label-sm">Título</label>
                             <input type="text" name="title"
                                    placeholder="Título do livro"
                                    value="{{ request.form['title'] }}"
-                                   class="form-control"></input>
+                                   class="form-control form-control-sm"></input>
                             {% if recommend['title'] %}
                               <small class="form-text text-muted">
                                 Sugestões: {% for t in recommend['title'] %} {{ t }}, {% endfor %}...
                               </small>
                             {% endif %}
-                            <br>
-                            <label for="publisher">Editora</label>
+                            
+                            <label for="publisher" class="col-form-label col-form-label-sm">Editora</label>
                             <input type="text" name="publisher"
                                    placeholder="Editora, selo ou marca do livro"
                                    value="{{ request.form['publisher'] }}"
-                                   class="form-control"></input>
+                                   class="form-control form-control-sm"></input>
                             {% if recommend['publisher'] %}
                               <small class="form-text text-muted">
                                 Sugestões: {% for t in recommend['publisher'] %} {{ t }}, {% endfor %}...
                               </small>
                             {% endif %}
-                            <br>
-                            <label for="author">Autores</label>
+                            
+                            <label for="author" class="col-form-label col-form-label-sm">Autores</label>
                             <input type="text" name="author"
                                    placeholder="Autores do livro"
                                    value="{{ request.form['author'] }}"
-                                   class="form-control"></input>
+                                   class="form-control form-control-sm"></input>
                             {% if recommend['author'] %}
                               <small class="form-text text-muted">
                                 Sugestões: {% for t in recommend['author'] %} {{ t }}, {% endfor %}...
                               </small>
                             {% endif %}
-                            <br>
-                            <label for="isbn">ISBN</label>
+                            
+                            <label for="isbn" class="col-form-label col-form-label-sm">ISBN</label>
                             <input type="number" name="isbn"
                                    placeholder="ISBN do livro"
                                    value="{{ request.form['isbn'] }}"
-                                   class="form-control"></input>
+                                   class="form-control form-control-sm"></input>
                             {% if recommend['isbn'] %}
                               <small class="form-text text-muted">
                                 Sugestões: {% for t in recommend['isbn'] %} {{ t }}, {% endfor %}...
                               </small>
                             {% endif %}
-                            <br>
-                            <label for="description">Descrição</label>
-                            <br>
+                            
+                            <label for="description" class="col-form-label col-form-label-sm">Descrição</label>
+                            
                             <textarea name="description"
                                       placeholder="Descrição do livro"
-                                      rows="3"
-                                      class="form-control"
+                                      rows="2"
+                                      class="form-control form-control-sm"
                                       value="{{ request.form['description'] }}"></textarea>
                             {% if recommend['description'] %}
                               <small class="form-text text-muted">
                                 Sugestões: {% for t in recommend['description'] %} {{ t }}, {% endfor %}...
                               </small>
                             {% endif %}
-                            <br>
-                            <button type="submit" class="btn btn-primary btn-lg btn-block">Buscar</button>
+                            
+                            <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin: 16px 0;">Buscar</button>
                         </form>
                     </div>
                   </div>
@@ -101,15 +101,15 @@
                   <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
                     <div class="card-body">
                         <form method="post" action='/search/text/' class="form-group">
-                            <label for="content">Conteúdo</label>
-                            <br>
+                            <label for="content" class="col-form-label col-form-label-sm">Conteúdo</label>
+                            
                             <textarea name="content"
                                       placeholder="Pesquise por termos na página do livro."
                                       rows="2"
-                                      class="form-control"
+                                      class="form-control form-control-sm"
                                       value="{{ request.form['content'] }}"></textarea>
-                            <br>
-                            <button type="submit" class="btn btn-primary btn-lg btn-block">Buscar</button>
+                            
+                            <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin: 16px 0;">Buscar</button>
                         </form>
                     </div>
                   </div>
