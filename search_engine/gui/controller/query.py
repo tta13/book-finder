@@ -1,7 +1,7 @@
 import json
 import os
 from search_engine.inverted_index import *
-import glob
+from search_engine.query import get_Query_Index_Rank, get_Query_Rank
 
 query_response_mock = {
     13: 0.9,
@@ -37,17 +37,15 @@ def field_query(input):
     query = []
     for (field, value) in input.items():
         query += get_val_field_pairs(field, value)
-    return search(query)
+    return search(query, field=True)
 
 def text_query(input):
     query = tokenize_text(input)
-    return search(query)
+    return search(query, field=False)
 
-def search(query):
+def search(query, field):
     if query:
-    # call some function to obtain query response
-    # docid_score = some_func(query)
-        docid_score_result = query_response_mock # mocked response data
+        docid_score_result = get_Query_Index_Rank(query) if field else get_Query_Rank(query)
         results = []
         for docid, score in docid_score_result.items():
             docname = get_docid_name(docid)
