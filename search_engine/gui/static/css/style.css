@@ -1,9 +1,11 @@
 
 #content-container {
-    margin: 32px 0;
+    margin: 24px 0;
     display: grid;
     width: 100%;
     grid-template-columns: 50% 50%;
+    grid-template-rows: 100%;
+    height: calc(100vh - 48px - 56px);
 }
 
 .result {
@@ -32,4 +34,10 @@ a:hover {
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.search-results-items {
+    overflow-y: auto;
+    scroll-behavior: contain;
+    padding: 8px;
 }
