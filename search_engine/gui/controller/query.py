@@ -2,6 +2,7 @@ import json
 import os
 from search_engine.inverted_index import *
 from search_engine.query import get_Query_Index_Rank, get_Query_Rank
+from .mutual_info import *
 
 query_response_mock = {
     13: 0.9,
@@ -35,12 +36,21 @@ def get_docmetadata(docname):
 
 def field_query(input):
     query = []
+    fields = []
+    # Generate value.field strings from input
     for (field, value) in input.items():
-        query += get_val_field_pairs(field, value)
-    return search(query, field=True)
+        if value:
+            query += get_val_field_pairs(field, value)
+            fields += [field]
+    # Get top K terms with largest mutual information for each input field
+    top_k_mutualinfo = {}
+    for field in list(set(fields)): # Iterate over input present fields
+        field_values = list(set(filter(lambda t: t.split('.')[1] == field, query))) # List all unique values
+        top_k_mutualinfo[field] = get_top_k_mutualinfo(field_values, field)
+    return search(query, field=True), top_k_mutualinfo
 
 def text_query(input):
-    query = tokenize_text(input)
+    query = filter(lambda t: t, tokenize_text(input))
     return search(query, field=False)
 
 def search(query, field):
@@ -52,7 +62,6 @@ def search(query, field):
             docurl = get_docname_url(docname)
             docmetadata = get_docmetadata(docname)
             docmetadata['url'] = docurl
-            # print('\n',docname, '\n',docurl,'\n', docmetadata)
             results.append(docmetadata)
         return results
     return []

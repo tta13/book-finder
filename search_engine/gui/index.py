@@ -6,7 +6,8 @@ app = Flask(__name__)
 
 results = {
     "field_results": [],
-    "text_results": []
+    "text_results": [],
+    "field_recommend": {}
 }
 
 query = {
@@ -15,7 +16,7 @@ query = {
 
 @app.route('/', methods=['GET'])
 def home():
-    return render_template(os.path.join('home.html'), field_results=results['field_results'], text_results=results['text_results'], required_field=False, current_query=query['current'])
+    return render_template(os.path.join('home.html'), field_results=results['field_results'], text_results=results['text_results'], required_field=False, current_query=query['current'], recommend=results['field_recommend'])
 
 @app.route('/search/text/', methods=['POST'])
 def text_search():
@@ -25,7 +26,6 @@ def text_search():
         results['text_results'] = []
         return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False)
     else:
-        # call function here to generate ranking and return an array of responses
         results['text_results'] = text_query(content)
         query['current'] = [i for i in [content] if i]
         results['field_results'] = []
@@ -35,7 +35,7 @@ def text_search():
 def field_search():
     title = request.form['title']
     publisher = request.form['publisher']
-    authors = request.form['authors']
+    authors = request.form['author']
     isbn = request.form['isbn']
     description = request.form['description']
     # Check if some field is filled
@@ -45,7 +45,7 @@ def field_search():
         return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False)
     else:
         # Submit query and receive results
-        results['field_results'] = field_query(request.form)
+        (results['field_results'], results['field_recommend']) = field_query(request.form)
         query['current'] = [i for i in [title, publisher, authors, isbn, description] if i]
         results['text_results'] = []
         return redirect(url_for('home'))

@@ -27,7 +27,7 @@ a:hover {
     width: auto;
     display: flex;
     flex-direction: column;
-    margin: 0 32px;
+    margin: 0 16px;
 }
 
 .section-header {
