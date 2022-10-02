@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, url_for, redirect
-from utils import *
+from controller import *
 
 app = Flask(__name__)
 
@@ -9,35 +9,33 @@ results = {
         {
             'title': 'Manifesto comunista',
             'publisher': 'Boitempo',
-            'authors': 'Marx, Engels',
+            'authors': ['Marx', 'Engels'],
             'isbn': 1234,
             'description': 'Manifesto comunista description',
             'url': '#result-0',
-            'ranking': 0
         }
     ],
     "text_results": []
 }
 
+query = {
+    "current": []
+}
+
 @app.route('/', methods=['GET'])
 def home():
-    return render_template(os.path.join('home.html'), field_results=results['field_results'], text_results=results['text_results'], required_field=False)
+    return render_template(os.path.join('home.html'), field_results=results['field_results'], text_results=results['text_results'], required_field=False, current_query=query['current'])
 
 @app.route('/search/text/', methods=['POST'])
 def text_search():
     content = request.form['content']
     if not content:
-        return render_template(os.path.join('home.html'), text_results=results['text_results'], required_field=True)
+        return render_template(os.path.join('home.html'), text_results=results['text_results'], required_field=True, current_query=False)
     else:
         # call function here to generate ranking and return an array of responses
+        results['text_results'] = text_query(content)
+        query['current'] = [i for i in [content] if i]
         results['field_results'] = []
-        results['text_results'] = []
-        len_res = len(results['text_results'])
-        results['text_results'].append({
-            'content': content,
-            'url': f"#result-{len_res}",
-            'ranking': len_res
-        })
         return redirect(url_for('home'))
 
 @app.route('/search/field/', methods=['POST'])
@@ -47,24 +45,14 @@ def field_search():
     authors = request.form['authors']
     isbn = request.form['isbn']
     description = request.form['description']
-
+    # Check if some field is filled
     if not (title or publisher or authors or isbn or description):
-        return render_template(os.path.join('home.html'), field_results=results['field_results'], required_field=True)
+        return render_template(os.path.join('home.html'), field_results=results['field_results'], required_field=True, current_query=False)
     else:
-        # call function here to generate ranking and return an array of responses
-        print(field_query(request.form))
+        # Submit query and receive results
+        results['field_results'] = field_query(request.form)
+        query['current'] = [i for i in [title, publisher, authors, isbn, description] if i]
         results['text_results'] = []
-        results['field_results'] = []
-        len_res = len(results['field_results'])
-        results['field_results'].append({
-            'title': title,
-            'publisher': publisher,
-            'authors': authors,
-            'isbn': isbn,
-            'description': description,
-            'url': f"#result-{len_res}",
-            'ranking': len_res
-        })
         return redirect(url_for('home'))
 
 if __name__ == '__main__':
