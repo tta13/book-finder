@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% if required_field %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 999;">
+            <strong>Busca inválida.</strong> Preencha ao menos um dos campos abaixo.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    {% endif %}
+    <div id="content-container">
+        <div id="search-form-container">
+            <!--FORMS DE BUSCA-->
+            <div id="accordion">
+                <!--BUSCA POR CAMPO-->
+                <div class="card">
+                  <div class="card-header" id="headingOne">
+                    <h5 class="mb-0">
+                      <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        Busca por campos
+                      </button>
+                    </h5>
+                  </div>
+              
+                  <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        <form method="post" action='/search/field/' class="form-group">
+                            <label for="title">Título</label>
+                            <input type="text" name="title"
+                                   placeholder="Título do livro"
+                                   value="{{ request.form['title'] }}"
+                                   class="form-control"></input>
+                            {% if recommend['title'] %}
+                              <small class="form-text text-muted">
+                                Sugestões: {% for t in recommend['title'] %} {{ t }}, {% endfor %}...
+                              </small>
+                            {% endif %}
+                            <br>
+                            <label for="publisher">Editora</label>
+                            <input type="text" name="publisher"
+                                   placeholder="Editora, selo ou marca do livro"
+                                   value="{{ request.form['publisher'] }}"
+                                   class="form-control"></input>
+                            {% if recommend['publisher'] %}
+                              <small class="form-text text-muted">
+                                Sugestões: {% for t in recommend['publisher'] %} {{ t }}, {% endfor %}...
+                              </small>
+                            {% endif %}
+                            <br>
+                            <label for="author">Autores</label>
+                            <input type="text" name="author"
+                                   placeholder="Autores do livro"
+                                   value="{{ request.form['author'] }}"
+                                   class="form-control"></input>
+                            {% if recommend['author'] %}
+                              <small class="form-text text-muted">
+                                Sugestões: {% for t in recommend['author'] %} {{ t }}, {% endfor %}...
+                              </small>
+                            {% endif %}
+                            <br>
+                            <label for="isbn">ISBN</label>
+                            <input type="number" name="isbn"
+                                   placeholder="ISBN do livro"
+                                   value="{{ request.form['isbn'] }}"
+                                   class="form-control"></input>
+                            {% if recommend['isbn'] %}
+                              <small class="form-text text-muted">
+                                Sugestões: {% for t in recommend['isbn'] %} {{ t }}, {% endfor %}...
+                              </small>
+                            {% endif %}
+                            <br>
+                            <label for="description">Descrição</label>
+                            <br>
+                            <textarea name="description"
+                                      placeholder="Descrição do livro"
+                                      rows="3"
+                                      class="form-control"
+                                      value="{{ request.form['description'] }}"></textarea>
+                            {% if recommend['description'] %}
+                              <small class="form-text text-muted">
+                                Sugestões: {% for t in recommend['description'] %} {{ t }}, {% endfor %}...
+                              </small>
+                            {% endif %}
+                            <br>
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">Buscar</button>
+                        </form>
+                    </div>
+                  </div>
+                </div>
+
+                <!--BUSCA NO TEXTO-->
+                <div class="card">
+                  <div class="card-header" id="headingTwo">
+                    <h5 class="mb-0">
+                      <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Busca por conteúdo
+                      </button>
+                    </h5>
+                  </div>
+                  <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                    <div class="card-body">
+                        <form method="post" action='/search/text/' class="form-group">
+                            <label for="content">Conteúdo</label>
+                            <br>
+                            <textarea name="content"
+                                      placeholder="Pesquise por termos na página do livro."
+                                      rows="2"
+                                      class="form-control"
+                                      value="{{ request.form['content'] }}"></textarea>
+                            <br>
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">Buscar</button>
+                        </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+        </div>
+
+        <div id="search-results-container">
+            <!--RESULTADOS DA BUSCA-->
+            {% if current_query %}
+              <div class="alert alert-primary" role="alert">
+                <code><span style="font-weight: bold;">consulta</span> = {{ current_query }}</code>
+              </div>
+            {% endif %}
+            <div class="search-results-items">
+              {% for result in field_results %}
+                  <a href="{{ result['url'] }}">
+                      <div class='result' id="result-{{ result['ranking'] }}">
+                          <h5 class="card-title">{{ result['title'] }}</h5>
+                          <table class="table table-hover">
+                            <tbody>
+                              <tr>
+                                <th scope="row">Título</th>
+                                <td>{{ result['title'] }}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row">Editora</th>
+                                <td>{{ result['publisher'] }}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row">Autor</th>
+                                <td>
+                                  {% for author in result['authors'] %}
+                                    {{ author }},
+                                  {% endfor %}
+                                </td>
+                              </tr>
+                              <tr>
+                                <th scope="row">ISBN</th>
+                                <td>{{ result['isbn'] }}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row">Descrição</th>
+                                <td>{{ result['description'] }}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                      </div>
+                  </a>
+              {% endfor %}
+  
+              {% for result in text_results %}
+                <a href="{{ result['url'] }}">
+                    <div class='result' id="result-{{ result['ranking'] }}">
+                        <h5 class="card-title">{{ result['title'] }}</h5>
+                        <table class="table table-hover">
+                          <tbody>
+                            <tr>
+                              <th scope="row">Título</th>
+                              <td>{{ result['title'] }}</td>
+                            </tr>
+                            <tr>
+                              <th scope="row">Editora</th>
+                              <td>{{ result['publisher'] }}</td>
+                            </tr>
+                            <tr>
+                              <th scope="row">Autor</th>
+                              <td>
+                                {% for author in result['authors'] %}
+                                  {{ author }},
+                                {% endfor %}
+                              </td>
+                            </tr>
+                            <tr>
+                              <th scope="row">ISBN</th>
+                              <td>{{ result['isbn'] }}</td>
+                            </tr>
+                            <tr>
+                              <th scope="row">Descrição</th>
+                              <td>{{ result['description'] }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                    </div>
+                </a>
+              {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
