@@ -5,16 +5,7 @@ from controller import *
 app = Flask(__name__)
 
 results = {
-    "field_results": [
-        {
-            'title': 'Manifesto comunista',
-            'publisher': 'Boitempo',
-            'authors': ['Marx', 'Engels'],
-            'isbn': 1234,
-            'description': 'Manifesto comunista description',
-            'url': '#result-0',
-        }
-    ],
+    "field_results": [],
     "text_results": []
 }
 
@@ -30,7 +21,9 @@ def home():
 def text_search():
     content = request.form['content']
     if not content:
-        return render_template(os.path.join('home.html'), text_results=results['text_results'], required_field=True, current_query=False)
+        results['field_results'] = []
+        results['text_results'] = []
+        return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False)
     else:
         # call function here to generate ranking and return an array of responses
         results['text_results'] = text_query(content)
@@ -47,7 +40,9 @@ def field_search():
     description = request.form['description']
     # Check if some field is filled
     if not (title or publisher or authors or isbn or description):
-        return render_template(os.path.join('home.html'), field_results=results['field_results'], required_field=True, current_query=False)
+        results['field_results'] = []
+        results['text_results'] = []
+        return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False)
     else:
         # Submit query and receive results
         results['field_results'] = field_query(request.form)
