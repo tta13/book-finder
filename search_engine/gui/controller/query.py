@@ -50,7 +50,7 @@ def field_query(input):
     return search(query, field=True), top_k_mutualinfo
 
 def text_query(input):
-    query = filter(lambda t: t, tokenize_text(input))
+    query = list(filter(lambda t: t, tokenize_text(input)))
     return search(query, field=False)
 
 def search(query, field):
