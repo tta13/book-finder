@@ -3,6 +3,8 @@ import os
 from search_engine.inverted_index import *
 from search_engine.query import get_Query_Index_Rank, get_Query_Rank
 from .mutual_info import *
+import tldextract
+from urllib.parse import urlparse
 
 query_response_mock = {
     13: 0.9,
@@ -62,6 +64,20 @@ def search(query, field):
             docurl = get_docname_url(docname)
             docmetadata = get_docmetadata(docname)
             docmetadata['url'] = docurl
+            docmetadata['domain'] = get_url_domain(docurl)
             results.append(docmetadata)
         return results
     return []
+
+def get_url_netloc(url):
+        try:
+            return urlparse(url).netloc
+        except Exception:
+            return None
+
+def get_url_domain(url):
+    try:
+        url_netloc = get_url_netloc(url)
+        return tldextract.extract(url_netloc).domain
+    except Exception:
+        return None
