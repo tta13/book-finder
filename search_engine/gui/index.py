@@ -24,7 +24,7 @@ def text_search():
     if not content:
         results['field_results'] = []
         results['text_results'] = []
-        return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False)
+        return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False, recommend={})
     else:
         results['text_results'] = text_query(content)
         query['current'] = [i for i in [content] if i]
@@ -42,7 +42,7 @@ def field_search():
     if not (title or publisher or authors or isbn or description):
         results['field_results'] = []
         results['text_results'] = []
-        return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False)
+        return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False, recommend={})
     else:
         # Submit query and receive results
         (results['field_results'], results['field_recommend']) = field_query(request.form)
