@@ -289,40 +289,16 @@ def get_documents_field_lengt(field_index):
 
     return lenght
 
+index = load_inv_index()
 def get_Query_Rank(terms):
-    try:
-        doc_ids = load_doc_ids(os.path.join(DATA_PATH, 'docIDs.json'))
-    except Exception:
-        save_doc_ids(create_doc_ids())
-
-    try:
-        # Loading inverted indexes
-        index = load_inv_index()
-    except Exception:
-        # Saving the inverted indexes then loading files
-        save_inv_index(doc_ids)
-        index = load_inv_index()
-
     lengt = get_documents_lengt(index)
 
     tabletfidf = create_tfidf_table(index)
 
     return cosineScore(tabletfidf,index, lengt, terms)
 
+field_index = load_field_inv_index()
 def get_Query_Index_Rank(terms):
-    try:
-        doc_ids = load_doc_ids(os.path.join(DATA_PATH, 'docIDs.json'))
-    except Exception:
-        save_doc_ids(create_doc_ids())
-
-    try:
-        # Loading inverted indexes
-        field_index = load_field_inv_index()
-    except Exception:
-        # Saving the inverted indexes then loading files
-        save_field_inv_index(doc_ids)
-        field_index = load_field_inv_index()
-
     field_lengt = get_documents_field_lengt(field_index)
 
     tableIndextfidf = create_tfidf_index_table(field_index)
