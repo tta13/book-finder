@@ -65,3 +65,9 @@ a:hover {
     padding: 0;
     color: #EE7279;
 }
+
+#query-summary {
+    background-color: #f7f7f7;
+    border-color: #d8d8d8;
+    color: #6c757d;
+}

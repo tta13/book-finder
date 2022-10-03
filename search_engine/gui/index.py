@@ -11,7 +11,8 @@ results = {
 }
 
 query = {
-    "current": []
+    "current": [],
+    "total_results": None
 }
 
 @app.route('/', methods=['GET'])
@@ -20,11 +21,11 @@ def home():
     results['text_results'] = []
     query['current'] = []
     results['field_recommend'] = {}
-    return render_template(os.path.join('home.html'), field_results=results['field_results'], text_results=results['text_results'], required_field=False, current_query=query['current'], recommend=results['field_recommend'])
+    return render_template(os.path.join('home.html'), field_results=results['field_results'], text_results=results['text_results'], required_field=False, current_query=query['current'], recommend=results['field_recommend'], total_results=query['total_results'])
 
 @app.route('/result', methods=['GET'])
 def home_result():
-    return render_template(os.path.join('home.html'), field_results=results['field_results'], text_results=results['text_results'], required_field=False, current_query=query['current'], recommend=results['field_recommend'])
+    return render_template(os.path.join('home.html'), field_results=results['field_results'], text_results=results['text_results'], required_field=False, current_query=query['current'], recommend=results['field_recommend'], total_results=query['total_results'])
 
 @app.route('/search/text/', methods=['POST'])
 def text_search():
@@ -33,11 +34,13 @@ def text_search():
         results['field_results'] = []
         results['text_results'] = []
         query['current'] = []
+        query['total_results'] = None
         results['field_recommend'] = {}
-        return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False, recommend={})
+        return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False, recommend={}, total_results=None)
     else:
         results['text_results'] = text_query(content)
         query['current'] = [i for i in [content] if i]
+        query['total_results'] = len(results['text_results'])
         results['field_results'] = []
         results['field_recommend'] = {}
         return redirect(url_for('home_result'))
@@ -54,11 +57,13 @@ def field_search():
         results['field_results'] = []
         results['text_results'] = []
         query['current'] = []
+        query['total_results'] = None
         results['field_recommend'] = {}
-        return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False, recommend={})
+        return render_template(os.path.join('home.html'), field_results=[], text_results=[], required_field=True, current_query=False, recommend={}, total_results=None)
     else:
         # Submit query and receive results
         (results['field_results'], results['field_recommend']) = field_query(request.form)
+        query['total_results'] = len(results['field_results'])
         query['current'] = [i for i in [title, publisher, authors, isbn, description] if i]
         results['text_results'] = []
         return redirect(url_for('home_result'))

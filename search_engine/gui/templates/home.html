@@ -120,8 +120,10 @@
         <div id="search-results-container">
             <!--RESULTADOS DA BUSCA-->
             {% if current_query %}
-              <div class="alert alert-primary" role="alert">
+              <div id="query-summary" class="alert alert-dark" role="alert">
                 <code><span style="font-weight: bold;">consulta</span> = {{ current_query }}</code>
+                <br>
+                {{ total_results }} resultados
               </div>
             {% endif %}
             <div class="search-results-items">
