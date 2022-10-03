@@ -5,13 +5,13 @@ import json
 import struct
 from string import punctuation
 from typing import Any, Tuple
-from unittest import result
+from functools import cache
 from bs4 import BeautifulSoup
 
 #region Consts
 SPACES = r'( )+'
 PUNCTUATION = punctuation.replace('_', '').replace('$', '') + '“”’‘–−―…'
-DATA_PATH = os.path.join('..', 'data', 'inverted-index')
+DATA_PATH = os.path.join('..', '..', 'data', 'inverted-index')
 INDEX_FILENAME = 'index'
 FIELD_INDEX_FILENAME = 'fieldIndex'
 #endregion
@@ -77,7 +77,7 @@ def pre_process_docs(doc_ids: dict, limit: int=None):
                     yield doc_id, tokens
 
 def pre_process_fields(doc_ids: dict, limit: int=None):
-    path = '../data/wrapped/'
+    path = os.path.join('..', '..', 'data', 'wrapped')
     processed_files = 0
     for domain in os.listdir(path):
         dir = os.path.join(path, domain)
@@ -96,7 +96,7 @@ def pre_process_fields(doc_ids: dict, limit: int=None):
                 yield doc_id, tokens
 
 def count_frequent_fields(doc_ids: dict, limit: int=None):
-    path = '../data/wrapped/'
+    path = os.path.join('..', '..', 'data', 'wrapped')
     processed_files = 0
     result = {
         "title": 0,
@@ -138,7 +138,7 @@ def count_frequent_fields(doc_ids: dict, limit: int=None):
 
 #region Indexing 
 def create_doc_ids():
-    paths = ['../data/positive-bfs/', '../data/positive-heu/']
+    paths = [os.path.join('..', '..', 'data', 'positive-bfs'), os.path.join('..', '..', 'data', 'positive-heu')]
     doc_ids = {}
     curr_id = 0
     for path in paths:
@@ -277,9 +277,11 @@ def by1(f: BufferedReader):
     for i in range(0, len(data), 1):
         yield data[i:i+1]
 
+@cache
 def bitstring_to_bytes(s):
     return int(s, 2).to_bytes((len(s) + 7) // 8, byteorder='big')
 
+@cache
 def bytes_to_bitstring(b):
     return f'{int(b.hex(), base=16):08b}'
 #endregion
