@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, url_for, redirect
-from .controller import *
+from search_engine.gui.controller import *
 
 app = Flask(__name__)
 
