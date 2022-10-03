@@ -59,7 +59,7 @@ def tokenize_fields(fields):
     return title + author + pub + desc + isbn
 
 def pre_process_docs(doc_ids: dict, limit: int=None):
-    paths = ['../data/positive-bfs/', '../data/positive-heu/']
+    paths = [os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'data', 'positive-bfs'), os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'data', 'positive-heu')]
     processed_files = 0
     for path in paths:
         for domain in os.listdir(path):
@@ -77,7 +77,7 @@ def pre_process_docs(doc_ids: dict, limit: int=None):
                     yield doc_id, tokens
 
 def pre_process_fields(doc_ids: dict, limit: int=None):
-    path = os.path.join('..', '..', 'data', 'wrapped')
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'data', 'wrapped')
     processed_files = 0
     for domain in os.listdir(path):
         dir = os.path.join(path, domain)
@@ -96,7 +96,7 @@ def pre_process_fields(doc_ids: dict, limit: int=None):
                 yield doc_id, tokens
 
 def count_frequent_fields(doc_ids: dict, limit: int=None):
-    path = os.path.join('..', '..', 'data', 'wrapped')
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'data', 'wrapped')
     processed_files = 0
     result = {
         "title": 0,
@@ -138,7 +138,7 @@ def count_frequent_fields(doc_ids: dict, limit: int=None):
 
 #region Indexing 
 def create_doc_ids():
-    paths = [os.path.join('..', '..', 'data', 'positive-bfs'), os.path.join('..', '..', 'data', 'positive-heu')]
+    paths = [os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'data', 'positive-bfs'), os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'data', 'positive-heu')]
     doc_ids = {}
     curr_id = 0
     for path in paths:
