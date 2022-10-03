@@ -23,6 +23,8 @@ Search engine and information retrieval tool for books
 
 ## Dev environment and code execution
 
+Commands to run the search engine app:
+
 ### Using Docker
 
 Build image:
@@ -40,8 +42,6 @@ docker run -p <port>:<port> -e PORT=<port> book-finder # e.g. port = 5000
 Access `localhost:<port>` in your web browser.
 
 ### Using Python Environment
-
-Commands to run the search engine app:
 
 ```bash
 # Create Python venv
