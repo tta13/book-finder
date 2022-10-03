@@ -71,3 +71,10 @@ a:hover {
     border-color: #d8d8d8;
     color: #6c757d;
 }
+
+td > p {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;  
+    overflow: hidden;
+}
