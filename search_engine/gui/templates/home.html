@@ -128,7 +128,7 @@
             {% endif %}
             <div class="search-results-items">
               {% for result in field_results %}
-                  <a href="{{ result['url'] }}">
+                  <a href="{{ result['url'] }}" target="_blank">
                       <div class='result' id="result-{{ result['ranking'] }}">
                           <h5 class="card-title">{{ result['title'] }}</h5>
                           {% if not (result['title'] or result['publisher'] or result['authors'] or result['isbn'] or result['description']) %}
@@ -185,7 +185,7 @@
               {% endfor %}
   
               {% for result in text_results %}
-                <a href="{{ result['url'] }}">
+                <a href="{{ result['url'] }}" target="_blank">
                     <div class='result' id="result-{{ result['ranking'] }}">
                         <h5 class="card-title">{{ result['title'] }}</h5>
                         {% if not (result['title'] or result['publisher'] or result['authors'] or result['isbn'] or result['description']) %}
