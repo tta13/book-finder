@@ -6,6 +6,8 @@ from .mutual_info import *
 import tldextract
 from urllib.parse import urlparse
 
+CURR_FILE_DIR = os.path.dirname(os.path.realpath(__file__))
+
 query_response_mock = {
     13: 0.9,
     5000: 0.1321,
@@ -16,19 +18,19 @@ def get_val_field_pairs(field, value):
     return [f'{val}.{field}' for val in tokenize_text(value)]
 
 docname_docid_map = {}
-with open(os.path.join('..', '..', 'data', 'inverted-index', 'docIDs.json'), 'r', encoding='utf-8') as file:
+with open(os.path.join(CURR_FILE_DIR, '..', '..', '..', 'data', 'inverted-index', 'docIDs.json'), 'r', encoding='utf-8') as file:
     docname_docid_map = json.load(file)
 def get_docid_name(docid):
     return list(docname_docid_map.keys())[list(docname_docid_map.values()).index(docid)]
 
 docname_docurl_map = {}
-with open(os.path.join('static', 'data', 'doc_name_to_url.json'), 'r', encoding='utf-8') as file:
+with open(os.path.join(CURR_FILE_DIR, '..', 'static', 'data', 'doc_name_to_url.json'), 'r', encoding='utf-8') as file:
     docname_docurl_map = json.load(file)
 def get_docname_url(docname):
     return docname_docurl_map[docname]
 
 def get_docmetadata(docname):
-    base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', '..', 'data', 'wrapped')
+    base_path = os.path.join(CURR_FILE_DIR, '..', '..', '..', 'data', 'wrapped')
     ends_with = '.html.json'
     filename = f"{docname}{ends_with}"
     path_list = [os.path.join(root, filename) for root, _, files in os.walk(base_path) if filename in files]

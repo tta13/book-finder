@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 #region Consts
 SPACES = r'( )+'
 PUNCTUATION = punctuation.replace('_', '').replace('$', '') + '“”’‘–−―…'
-DATA_PATH = os.path.join('..', '..', 'data', 'inverted-index')
+DATA_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'data', 'inverted-index')
 INDEX_FILENAME = 'index'
 FIELD_INDEX_FILENAME = 'fieldIndex'
 #endregion
