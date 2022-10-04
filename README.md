@@ -19,6 +19,7 @@ Search engine and information retrieval tool for books
 - [Query module code](/search_engine/query/)
 - [Query response composition app](/search_engine/gui/)
 - [Slides II](https://docs.google.com/presentation/d/1A99vLJuXnCeUq5nR6NCyVuH1trXh5y6sXhDMa_yERb4/view?usp=sharing)
+- [Video II](https://drive.google.com/file/d/1H5IMOpPvso83kay51VhJQD_bVNS4j30d/view?usp=sharing)
 
 ## Search Engine App Demo
 [Access the demo video here](https://drive.google.com/file/d/1suDBYO7FVyiUUWIsCCLwyDGWQw0P3tLl/view?usp=sharing).
