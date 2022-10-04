@@ -31,15 +31,10 @@ def main():
     tabletfidf = create_tfidf_table(index)
     tableIndextfidf = create_tfidf_index_table(field_index)
 
-    #scored = cosineScore(tabletfidf,index, lengt, terms)
-    #scored = cosineScoreField(tableIndextfidf,field_index, field_lengt, terms)
-    #scored = cosineScoreTF(index, lengt, terms)
-    #scored = cosineScoreFieldTF(field_index, field_lengt, terms)
-
     print("\n\n\n\n")
 
-    termsfield = ["karl.author","marx.author"]
-    terms = ["karl","marx"]
+    termsfield = ["fraudes.description"]
+    terms = ["fraudes"]
 
     scored1 = cosineScoreFieldTF(field_index, field_lengt, termsfield)
     #print(scored1)
@@ -55,19 +50,14 @@ def main():
     print("\n\n\n\n")
     scored4 = cosineScoreField(tableIndextfidf,field_index, field_lengt, termsfield)
     #print(scored4)
+    print('ta tudo scorado')
 
     print("\n\n\n\n")
 
     tau1 = get_kendal_tau(scored1,scored4)
-    #tau2 = get_kendal_tau(scored1,scored2)
-    #tau3 = get_kendal_tau(scored1,scored3)
     tau4 = get_kendal_tau(scored2,scored3)
-    #tau5 = get_kendal_tau(scored2,scored4)
-    #tau6 = get_kendal_tau(scored3,scored4)
     
     print(f'tau: {tau1}')
-    
-   
     print(f'tau: {tau4}')
     
 def get_kendal_tau(dic1, dic2):
@@ -77,6 +67,10 @@ def get_kendal_tau(dic1, dic2):
         list1.append(i)
     for i in dic2.keys():
         list2.append(i)
+
+    print('calculando kendal')
+    print(list1)
+    print(list2)
 
     pairs1 = []
     pairs2 = []
@@ -95,16 +89,18 @@ def get_kendal_tau(dic1, dic2):
         return 1 if list1[0] == list2[0] else 0
 
     concordant_pairs = 0
+    disconcordant_pairs = 0
+    print(len(pairs1))
     for i in range(len(pairs1)):
         if pairs1[i] not in pairs2:
-            concordant_pairs += 1
+            disconcordant_pairs += 1
+        else:
+            concordant_pairs +=1
 
+    disconcordant_pairs *= 2
     concordant_pairs *= 2
-    tal =  1 - 2 * concordant_pairs / (2 * len((pairs1)))
 
-    tau, p_value = stats.kendalltau(list1, list2)
-
-    print(f'tal: {tal}\n tau: {tau}\n')
+    tal = (concordant_pairs - disconcordant_pairs)/( 2 *len(pairs1))
 
     return tal
 
@@ -285,8 +281,8 @@ def get_documents_field_lengt(field_index):
                 lenght[tupla[0]] = tupla[1]
             else:
                 lenght[tupla[0]] += tupla[1]
-
-
+        
+    print(len(lenght))
     return lenght
 
 index = load_inv_index()
